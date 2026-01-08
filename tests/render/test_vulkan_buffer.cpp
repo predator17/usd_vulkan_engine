@@ -98,8 +98,7 @@ TEST_CASE("VulkanBuffer: Double creation protection", "[render][vulkan][buffer][
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanBuffer buffer;
@@ -133,8 +132,7 @@ TEST_CASE("VertexBuffer: Create and populate", "[render][vulkan][buffer][VulkanG
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VertexBuffer buffer;
@@ -173,8 +171,7 @@ TEST_CASE("IndexBuffer: Create and populate", "[render][vulkan][buffer][VulkanGP
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     IndexBuffer buffer;
@@ -211,8 +208,7 @@ TEST_CASE("UniformBuffer: Create and update", "[render][vulkan][buffer][VulkanGP
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     UniformBuffer buffer;
@@ -269,8 +265,7 @@ TEST_CASE("VulkanBuffer: Cleanup and recreate", "[render][vulkan][buffer][Vulkan
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanBuffer buffer;
@@ -309,8 +304,7 @@ TEST_CASE("VulkanBuffer: Different buffer usages", "[render][vulkan][buffer][Vul
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     SECTION("Vertex buffer usage") {
@@ -380,8 +374,7 @@ TEST_CASE("VulkanBuffer: Different memory types", "[render][vulkan][buffer][Vulk
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     SECTION("Device local memory") {
@@ -431,8 +424,7 @@ TEST_CASE("VulkanBuffer: Large buffer", "[render][vulkan][buffer][VulkanGPUTests
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanBuffer buffer;
@@ -464,8 +456,7 @@ TEST_CASE("VertexBuffer: Update functionality", "[render][vulkan][buffer][Vulkan
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VertexBuffer buffer;
@@ -496,8 +487,7 @@ TEST_CASE("IndexBuffer: Update functionality", "[render][vulkan][buffer][VulkanG
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     IndexBuffer buffer;

@@ -5,6 +5,11 @@
 #include <set>
 #include <cstring>
 
+// Required device extensions for swapchain support
+const std::vector<const char*> VulkanContext::s_deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
 VulkanContext::~VulkanContext() {
     shutdown();
 }
@@ -44,20 +49,33 @@ bool VulkanContext::initialize(GLFWwindow* window, bool enableValidationLayers) 
 void VulkanContext::shutdown() {
     // Destroy in reverse order of creation
     // Only destroy what was actually created
+    // Use explicit null checks and reset handles after destruction
+
     if (m_device) {
         m_device.destroy();
+        m_device = vk::Device();
     }
+
     if (m_surface && m_instance) {
         m_instance.destroySurfaceKHR(m_surface);
+        m_surface = vk::SurfaceKHR();
     }
+
 #ifdef USD_VULKAN_ENGINE_VALIDATION
     if (m_debugMessenger && m_instance) {
         m_instance.destroyDebugUtilsMessengerEXT(m_debugMessenger);
+        m_debugMessenger = vk::DebugUtilsMessengerEXT();
     }
 #endif
+
     if (m_instance) {
         m_instance.destroy();
+        m_instance = vk::Instance();
     }
+
+    // Reset queue family indices
+    m_queueFamilyIndices.graphicsFamily.reset();
+    m_queueFamilyIndices.presentFamily.reset();
 
     m_initialized = false;
 }
@@ -135,12 +153,31 @@ bool VulkanContext::pickPhysicalDevice() {
             i++;
         }
 
+        // Check if device supports required extensions
         if (m_queueFamilyIndices.isComplete()) {
-            break;
+            if (checkDeviceExtensionSupport(device)) {
+                break;
+            }
         }
     }
 
     return m_queueFamilyIndices.isComplete();
+}
+
+bool VulkanContext::checkDeviceExtensionSupport(vk::PhysicalDevice device) {
+    uint32_t extensionCount = 0;
+    device.enumerateDeviceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+    std::vector<vk::ExtensionProperties> availableExtensions(extensionCount);
+    device.enumerateDeviceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(s_deviceExtensions.begin(), s_deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
 }
 
 bool VulkanContext::createLogicalDevice() {
@@ -164,6 +201,10 @@ bool VulkanContext::createLogicalDevice() {
     createInfo.setQueueCreateInfoCount(static_cast<uint32_t>(queueCreateInfos.size()));
     createInfo.setPQueueCreateInfos(queueCreateInfos.data());
     createInfo.setPEnabledFeatures(&deviceFeatures);
+
+    // Enable required device extensions (VK_KHR_swapchain)
+    createInfo.setEnabledExtensionCount(static_cast<uint32_t>(s_deviceExtensions.size()));
+    createInfo.setPpEnabledExtensionNames(s_deviceExtensions.data());
 
     vk::Result result = m_physicalDevice.createDevice(&createInfo, nullptr, &m_device);
     if (result != vk::Result::eSuccess) {

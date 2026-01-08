@@ -39,10 +39,14 @@ public:
     VulkanQueueFamilyIndices getQueueFamilyIndices() const { return m_queueFamilyIndices; }
 
 private:
+    // Required device extensions
+    static const std::vector<const char*> s_deviceExtensions;
+
     bool createInstance(bool enableValidationLayers);
     bool createSurface(GLFWwindow* window);
     bool pickPhysicalDevice();
     bool createLogicalDevice();
+    bool checkDeviceExtensionSupport(vk::PhysicalDevice device);
 
     vk::Instance m_instance;
     vk::PhysicalDevice m_physicalDevice;

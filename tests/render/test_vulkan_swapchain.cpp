@@ -31,8 +31,7 @@ TEST_CASE("VulkanSwapchain: Create and destroy", "[render][vulkan][swapchain][Vu
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -83,8 +82,7 @@ TEST_CASE("VulkanSwapchain: Double creation protection", "[render][vulkan][swapc
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -115,8 +113,7 @@ TEST_CASE("VulkanSwapchain: Cleanup and recreate", "[render][vulkan][swapchain][
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -151,8 +148,7 @@ TEST_CASE("VulkanSwapchain: Different extents", "[render][vulkan][swapchain][Vul
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -189,8 +185,7 @@ TEST_CASE("VulkanSwapchain: Image views count", "[render][vulkan][swapchain][Vul
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -222,8 +217,7 @@ TEST_CASE("VulkanSwapchain: Render pass creation", "[render][vulkan][swapchain][
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -256,8 +250,7 @@ TEST_CASE("VulkanSwapchain: Framebuffer creation", "[render][vulkan][swapchain][
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -292,8 +285,7 @@ TEST_CASE("VulkanSwapchain: Depth buffer", "[render][vulkan][swapchain][VulkanGP
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
@@ -327,8 +319,7 @@ TEST_CASE("VulkanSwapchain: Cleanup before create", "[render][vulkan][swapchain]
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanSwapchain swapchain;
