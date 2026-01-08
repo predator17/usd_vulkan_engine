@@ -1,8 +1,19 @@
 # Build directories
 build/
+.cmake/
 cmake-build-debug*/
 out/
 cmake-out*/
+external/build/
+external/CMakeFiles/
+
+# CMake generated files in source directories
+src/*/CMakeFiles/
+tests/CMakeFiles/
+CMakeFiles/
+
+# Shader output directory at root (shaders are in src/shaders/)
+shaders/
 
 # CMake generated files
 CMakeCache.txt
@@ -74,6 +85,10 @@ external/USD/*.zip
 
 # Log files
 *.log
+external/latest
+
+# Archive files at root
+*.zip
 
 # OS specific
 .DS_Store

@@ -1,0 +1,128 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+    metersPerUnit = 0.01
+    upAxis = "Y"
+    timeCodesPerSecond = 24
+)
+
+def Xform "Root"
+{
+    def Sphere "SpinningCube"(
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+        float3 xformOp:rotate = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotate", "xformOp:scale"]
+
+        rel material:binding = </Root/Looks/CubeMaterial>
+
+        # Cube definition using a single mesh with 8 vertices and 12 triangles
+        # Each face is made of 2 triangles
+        int[] faceVertexCounts = [6, 6, 6, 6, 6, 6]  # 6 vertices per face (2 triangles x 3 verts)
+        int[] faceVertexIndices = [
+            # Front face (Z+)
+            0, 1, 2, 2, 3, 0,
+            # Back face (Z-)
+            5, 4, 7, 7, 6, 5,
+            # Top face (Y+)
+            3, 2, 6, 6, 7, 3,
+            # Bottom face (Y-)
+            4, 5, 1, 1, 0, 4,
+            # Right face (X+)
+            7, 6, 2, 2, 1, 5,
+            # Left face (X-)
+            3, 0, 1, 1, 4, 3
+        ]
+
+        point3f[] points = [
+            (-0.5, -0.5, 0.5),   # 0: front-bottom-left
+            (0.5, -0.5, 0.5),    # 1: front-bottom-right
+            (0.5, 0.5, 0.5),     # 2: front-top-right
+            (-0.5, 0.5, 0.5),    # 3: front-top-left
+            (-0.5, -0.5, -0.5),  # 4: back-bottom-left
+            (0.5, -0.5, -0.5),   # 5: back-bottom-right
+            (0.5, 0.5, -0.5),    # 6: back-top-right
+            (-0.5, 0.5, -0.5)    # 7: back-top-left
+        ]
+
+        normal3f[] normals = [
+            (0, 0, 1),   # Front
+            (0, 0, -1),  # Back
+            (0, 1, 0),   # Top
+            (0, -1, 0),  # Bottom
+            (1, 0, 0),   # Right
+            (-1, 0, 0)   # Left
+        ]
+
+        int[] primvars:uv:indices = [
+            0, 1, 2, 2, 3, 0,
+            5, 4, 7, 7, 6, 5,
+            3, 2, 6, 6, 7, 3,
+            4, 5, 1, 1, 0, 4,
+            7, 6, 2, 2, 1, 5,
+            3, 0, 1, 1, 4, 3
+        ]
+
+        texCoord2f[] primvars:uv = [
+            (0, 0), (1, 0), (1, 1), (0, 1)
+        ]
+
+        float3[] primvars:displayColor = [
+            (1.0, 0.3, 0.3),  # Red color
+        ]
+    }
+
+    # Animation: rotate cube around Y axis for 100 frames
+    # Time samples at 24 fps: 0, 1/24, 2/24, ..., 100/24
+    # Spinning 360 degrees over 100 frames
+
+    # Sample every 10 frames for cleaner data
+    def Xform "SpinningCube_Rotate" (
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+        float3 xformOp:rotate = (0, 0, 0)
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotate"]
+
+        # Rotation animation samples (0 to 360 degrees over 100 frames)
+        # Frame 0 (0 degrees)
+        float3 xformOp:rotate.timeSamples = {
+            0: (0, 0, 0),
+            10: (0, 36, 0),
+            20: (0, 72, 0),
+            30: (0, 108, 0),
+            40: (0, 144, 0),
+            50: (0, 180, 0),
+            60: (0, 216, 0),
+            70: (0, 252, 0),
+            80: (0, 288, 0),
+            90: (0, 324, 0),
+            100: (0, 360, 0)
+        }
+    }
+}
+
+def Scope "Looks"
+{
+    def Material "CubeMaterial"
+    {
+        token outputs:surface:connect = </Root/Looks/CubeMaterial/Shader.outputs:surface>
+
+        def Shader "Shader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            token info:implementationSource = "sourceAsset"
+            asset info:implementationSource:sourceAsset = @usdPreviewSurface@
+
+            color3f inputs:diffuseColor = (1, 0.3, 0.3)
+            float inputs:metallic = 0
+            float inputs:roughness = 0.5
+            float inputs:opacity = 1
+            token outputs:surface
+        }
+    }
+}

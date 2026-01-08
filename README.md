@@ -53,6 +53,31 @@ make -j$(nproc)
 | **LEFT** | Step to previous frame |
 | **RIGHT** | Step to next frame |
 
+## Cleanup
+
+The project includes automatic post-build cleanup to keep source directories clean. Additional cleanup commands are available:
+
+### Shell Script (Recommended)
+
+```bash
+./cleanup.sh tidy       # Light cleanup: remove CMakeFiles from source, logs, temps
+./cleanup.sh sweep      # Aggressive cleanup: all artifacts and intermediates
+./cleanup.sh distclean  # Remove everything including build directory
+./cleanup.sh help       # Show all options
+```
+
+### CMake Targets
+
+```bash
+make project-clean   # Remove build artifacts, keep build dir
+make tidy            # Remove intermediate files, keep binaries
+make sweep           # Aggressive cleanup of all artifacts
+make distclean       # Remove entire build directory
+make help-cleanup    # Show cleanup help
+```
+
+**Note:** Post-build cleanup runs automatically after each build to remove CMake artifacts from source directories.
+
 ## Dependencies Setup
 
 ### Required External Dependencies

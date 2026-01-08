@@ -83,3 +83,144 @@ if(USD_VULKAN_ENGINE_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+#==============================================================================
+# Cleanup Targets
+#==============================================================================
+
+# Custom project-clean target - removes build artifacts but keeps build directory
+add_custom_target(project-clean
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_BINARY_DIR}/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove
+        ${CMAKE_BINARY_DIR}/CMakeCache.txt
+        ${CMAKE_BINARY_DIR}/cmake_install.cmake
+        ${CMAKE_BINARY_DIR}/Makefile
+        ${CMAKE_BINARY_DIR}/CTestTestfile.cmake
+        ${CMAKE_BINARY_DIR}/_deps
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_BINARY_DIR}/src/*/CMakeFiles
+        ${CMAKE_BINARY_DIR}/tests/CMakeFiles
+        ${CMAKE_BINARY_DIR}/external/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/build/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/external/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove
+        ${CMAKE_SOURCE_DIR}/build/CMakeCache.txt
+        ${CMAKE_SOURCE_DIR}/build/cmake_install.cmake
+        ${CMAKE_SOURCE_DIR}/build/Makefile
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
+    COMMENT "Cleaning build artifacts..."
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# distclean target - removes entire build directory
+add_custom_target(distclean
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/build
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove
+        ${CMAKE_SOURCE_DIR}/CMakeCache.txt
+        ${CMAKE_SOURCE_DIR}/cmake_install.cmake
+        ${CMAKE_SOURCE_DIR}/Makefile
+    COMMENT "Performing distclean..."
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# tidy target - removes intermediate files but keeps compiled binaries
+add_custom_target(tidy
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_BINARY_DIR}/CMakeFiles
+        ${CMAKE_BINARY_DIR}/_deps
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/build/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/build/external/CMakeFiles
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "*.log" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "latest" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.log" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.zip" -delete
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/shaders
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/.cmake
+    COMMENT "Tidying up project..."
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# sweep target - aggressive cleanup of all temp/artifact files
+add_custom_target(sweep
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove
+        ${CMAKE_SOURCE_DIR}/CMakeCache.txt
+        ${CMAKE_SOURCE_DIR}/cmake_install.cmake
+        ${CMAKE_SOURCE_DIR}/Makefile
+    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "cmake_install.cmake" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "Makefile" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "cmake_install.cmake" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "Makefile" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "CMakeCache.txt" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "cmake_install.cmake" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "Makefile" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external/build -type d -delete 2>/dev/null || true
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "*.log" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "latest" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.log" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.zip" -delete
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/shaders
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/.cmake
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/_deps
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/cmake-build-debug
+    COMMENT "Sweeping all artifacts..."
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# help-cleanup target - show available targets
+add_custom_target(help-cleanup
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo "Cleanup Targets:"
+    COMMAND ${CMAKE_COMMAND} -E echo "  make project-clean - Remove build artifacts, keep build dir"
+    COMMAND ${CMAKE_COMMAND} -E echo "  make tidy         - Remove intermediate files, keep binaries"
+    COMMAND ${CMAKE_COMMAND} -E echo "  make sweep        - Aggressive cleanup of all artifacts"
+    COMMAND ${CMAKE_COMMAND} -E echo "  make distclean    - Remove entire build directory"
+    COMMAND ${CMAKE_COMMAND} -E echo "  make help-cleanup - Show this help message"
+    COMMAND ${CMAKE_COMMAND} -E echo "  ./cleanup.sh - Shell script alternative"
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMENT "Cleanup help"
+)
+
+# Post-build cleanup - run automatically after build
+add_custom_target(postbuild_cleanup
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+        ${CMAKE_SOURCE_DIR}/src/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
+        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
+    COMMAND ${CMAKE_COMMAND} -E remove
+        ${CMAKE_SOURCE_DIR}/CMakeCache.txt
+        ${CMAKE_SOURCE_DIR}/cmake_install.cmake
+        ${CMAKE_SOURCE_DIR}/Makefile
+    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "cmake_install.cmake" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "Makefile" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "cmake_install.cmake" -delete
+    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "Makefile" -delete
+    COMMENT "Post-build cleanup: removing source dir artifacts..."
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# Add postbuild_cleanup as dependency to the main executable
+add_dependencies(usd_vulkan_engine postbuild_cleanup)
