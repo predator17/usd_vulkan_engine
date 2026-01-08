@@ -11,6 +11,10 @@ class Shader;
 class VulkanPipeline;
 class VulkanBuffer;
 
+namespace usd_vk {
+    class ImGuiRenderer;
+}
+
 /**
  * @brief Main renderer for USD Vulkan Engine
  *
@@ -40,6 +44,11 @@ public:
      * @brief Set the current scene
      */
     void setScene(Scene* scene);
+
+    /**
+     * @brief Set the ImGui renderer for UI overlay
+     */
+    void setImGuiRenderer(usd_vk::ImGuiRenderer* imguiRenderer) { m_imguiRenderer = imguiRenderer; }
 
     /**
      * @brief Render a frame
@@ -117,4 +126,7 @@ private:
     uint32_t m_currentFrame = 0;
     bool m_initialized = false;
     bool m_framebufferResized = false;
+
+    // UI overlay
+    usd_vk::ImGuiRenderer* m_imguiRenderer = nullptr;
 };

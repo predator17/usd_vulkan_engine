@@ -9,6 +9,12 @@ class VulkanContext;
 class Renderer;
 class Scene;
 
+namespace usd_vk {
+    class ImGuiContext;
+    class ImGuiRenderer;
+    class ImGuiUI;
+}
+
 /**
  * @brief Main application class for USD Vulkan Engine
  *
@@ -120,10 +126,16 @@ private:
     void destroyWindow();
     void mainLoop();
     void handleInput();
+    void setupUICallbacks();
 
     std::unique_ptr<VulkanContext> m_context;
     std::unique_ptr<Renderer> m_renderer;
     std::unique_ptr<Scene> m_scene;
+
+    // ImGui components
+    std::unique_ptr<usd_vk::ImGuiContext> m_imguiContext;
+    std::unique_ptr<usd_vk::ImGuiRenderer> m_imguiRenderer;
+    std::unique_ptr<usd_vk::ImGuiUI> m_imguiUI;
 
     GLFWwindow* m_window = nullptr;
     int m_windowWidth = 1280;

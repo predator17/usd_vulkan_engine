@@ -4,6 +4,7 @@
 #include "vulkan_pipeline.hpp"
 #include "shader.hpp"
 #include "scene/scene.hpp"
+#include "ui/imgui_renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <spdlog/spdlog.h>
@@ -243,6 +244,11 @@ void Renderer::render(VulkanContext& context, Scene* scene) {
                 // Draw
                 m_commandBuffers[imageIndex].drawIndexed(m_meshBuffers[0].indexCount, 1, 0, 0, 0);
             }
+        }
+
+        // Render ImGui UI overlay
+        if (m_imguiRenderer) {
+            m_imguiRenderer->renderDrawData(m_commandBuffers[imageIndex]);
         }
 
         m_commandBuffers[imageIndex].endRenderPass();

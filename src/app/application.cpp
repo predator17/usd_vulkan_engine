@@ -2,6 +2,10 @@
 #include "render/vulkan_context.hpp"
 #include "render/renderer.hpp"
 #include "scene/scene.hpp"
+#include "ui/imgui_context.hpp"
+#include "ui/imgui_renderer.hpp"
+#include "ui/imgui_ui.hpp"
+#include "imgui.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <cmath>
@@ -15,6 +19,12 @@ namespace {
 
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         if (!g_application) return;
+
+        // Check if ImGui wants to capture keyboard input
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureKeyboard) {
+            return;
+        }
 
         if (action == GLFW_PRESS) {
             switch (key) {
@@ -48,6 +58,19 @@ Application* g_application = nullptr;
 Application::Application() = default;
 
 Application::~Application() {
+    // Shutdown ImGui first (before Vulkan context)
+    if (m_imguiRenderer) {
+        m_imguiRenderer->shutdown(*m_context);
+        m_imguiRenderer.reset();
+    }
+    if (m_imguiContext) {
+        m_imguiContext->shutdown();
+        m_imguiContext.reset();
+    }
+    if (m_imguiUI) {
+        m_imguiUI.reset();
+    }
+
     destroyWindow();
     m_scene.reset();
     m_renderer.reset();
@@ -89,6 +112,35 @@ bool Application::initialize(const std::string& windowTitle, int width, int heig
     // Initialize scene
     m_scene = std::make_unique<Scene>();
 
+    SPDLOG_INFO("About to initialize ImGui context...");
+
+    // Initialize ImGui context
+    m_imguiContext = std::make_unique<usd_vk::ImGuiContext>();
+    if (!m_imguiContext->initialize(m_window)) {
+        SPDLOG_ERROR("Failed to initialize ImGui context");
+        return false;
+    }
+
+    SPDLOG_INFO("ImGui context initialized, about to initialize ImGui renderer...");
+
+    // Initialize ImGui renderer
+    m_imguiRenderer = std::make_unique<usd_vk::ImGuiRenderer>();
+    if (!m_imguiRenderer->initialize(*m_context)) {
+        SPDLOG_ERROR("Failed to initialize ImGui renderer");
+        return false;
+    }
+
+    SPDLOG_INFO("ImGui renderer initialized, setting up callbacks...");
+
+    // Set ImGui renderer on the main renderer
+    m_renderer->setImGuiRenderer(m_imguiRenderer.get());
+
+    // Initialize ImGui UI
+    m_imguiUI = std::make_unique<usd_vk::ImGuiUI>();
+    setupUICallbacks();
+
+    SPDLOG_INFO("ImGui UI initialized...");
+
     g_application = this;
     m_initialized = true;
     m_running = true;
@@ -112,6 +164,11 @@ bool Application::loadScene(const std::string& filePath) {
     // Update renderer with scene data
     if (m_renderer) {
         m_renderer->setScene(m_scene.get());
+    }
+
+    // Update UI with loaded file
+    if (m_imguiUI) {
+        m_imguiUI->setCurrentFile(filePath);
     }
 
     return true;
@@ -181,7 +238,26 @@ void Application::mainLoop() {
             }
         }
 
-        // Render
+        // Update ImGui with current state
+        if (m_imguiUI) {
+            m_imguiUI->setPlaying(m_playing);
+            m_imguiUI->setCurrentFrame(m_currentFrame);
+        }
+
+        // Start ImGui frame
+        if (m_imguiContext) {
+            m_imguiContext->newFrame();
+        }
+        if (m_imguiRenderer) {
+            m_imguiRenderer->newFrame();
+        }
+
+        // Build ImGui UI
+        if (m_imguiUI) {
+            m_imguiUI->render();
+        }
+
+        // Render scene and ImGui (ImGui draw data is recorded in the render pass)
         if (m_renderer && m_context) {
             // Sync current animation time to context (respects pause/play state)
             m_context->setElapsedTime(static_cast<float>(getCurrentTime()));
@@ -205,4 +281,36 @@ double Application::getCurrentTime() const {
         return m_elapsedTime;
     }
     return m_currentFrame / 24.0;  // Convert frame to seconds
+}
+
+void Application::setupUICallbacks() {
+    if (!m_imguiUI) {
+        return;
+    }
+
+    // Set up load file callback
+    m_imguiUI->setLoadFileCallback([this](const std::string& path) {
+        loadScene(path);
+    });
+
+    // Set up play/pause callback
+    m_imguiUI->setPlayPauseCallback([this]() {
+        togglePlayback();
+    });
+
+    // Set up frame step callback (handles both previous/next and seek)
+    m_imguiUI->setStepFrameCallback([this](int delta) {
+        if (delta < 0) {
+            for (int i = 0; i < -delta; i++) {
+                previousFrame();
+            }
+        } else if (delta > 0) {
+            for (int i = 0; i < delta; i++) {
+                nextFrame();
+            }
+        }
+    });
+
+    // Set frame range for UI
+    m_imguiUI->setFrameRange(m_startFrame, m_endFrame);
 }
