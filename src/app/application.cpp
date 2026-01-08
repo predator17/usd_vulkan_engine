@@ -2,6 +2,7 @@
 #include "render/vulkan_context.hpp"
 #include "render/renderer.hpp"
 #include "scene/scene.hpp"
+#include "camera/camera.hpp"
 #include "ui/imgui_context.hpp"
 #include "ui/imgui_renderer.hpp"
 #include "ui/imgui_ui.hpp"
@@ -45,11 +46,39 @@ namespace {
     }
 
     void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-        // Camera rotation could be handled here
+        if (!g_application) return;
+
+        // Check if ImGui wants to capture mouse input
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) {
+            return;
+        }
+
+        g_application->handleMouseMotion(xpos, ypos);
     }
 
     void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-        // Camera zoom could be handled here
+        if (!g_application) return;
+
+        // Check if ImGui wants to capture mouse input
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) {
+            return;
+        }
+
+        g_application->handleMouseScroll(yoffset);
+    }
+
+    void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        if (!g_application) return;
+
+        // Check if ImGui wants to capture mouse input
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) {
+            return;
+        }
+
+        g_application->handleMouseButton(button, action, mods);
     }
 }
 
@@ -111,6 +140,10 @@ bool Application::initialize(const std::string& windowTitle, int width, int heig
 
     // Initialize scene
     m_scene = std::make_unique<Scene>();
+
+    // Initialize camera
+    m_camera = std::make_unique<Camera>();
+    m_renderer->setCamera(m_camera.get());
 
     SPDLOG_INFO("About to initialize ImGui context...");
 
@@ -200,6 +233,7 @@ bool Application::createWindow(const std::string& title, int width, int height) 
     glfwSetKeyCallback(m_window, keyCallback);
     glfwSetCursorPosCallback(m_window, cursorPosCallback);
     glfwSetScrollCallback(m_window, scrollCallback);
+    glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
 
     SPDLOG_INFO("Window created: {}x{}", width, height);
     return true;
@@ -242,6 +276,10 @@ void Application::mainLoop() {
         if (m_imguiUI) {
             m_imguiUI->setPlaying(m_playing);
             m_imguiUI->setCurrentFrame(m_currentFrame);
+            // Sync wireframe mode state with UI
+            if (m_renderer) {
+                m_imguiUI->setWireframeMode(m_renderer->isWireframeMode());
+            }
         }
 
         // Start ImGui frame
@@ -311,6 +349,65 @@ void Application::setupUICallbacks() {
         }
     });
 
+    // Set up wireframe callback
+    m_imguiUI->setWireframeCallback([this](bool wireframe) {
+        if (m_renderer) {
+            m_renderer->setWireframeMode(wireframe);
+            SPDLOG_INFO("Wireframe mode: {}", wireframe ? "enabled" : "disabled");
+        }
+    });
+
     // Set frame range for UI
     m_imguiUI->setFrameRange(m_startFrame, m_endFrame);
+}
+
+void Application::handleMouseButton(int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            m_mouseLeftPressed = true;
+        } else if (action == GLFW_RELEASE) {
+            m_mouseLeftPressed = false;
+        }
+    } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            m_mouseRightPressed = true;
+        } else if (action == GLFW_RELEASE) {
+            m_mouseRightPressed = false;
+        }
+    }
+}
+
+void Application::handleMouseMotion(double xpos, double ypos) {
+    if (!m_camera) return;
+
+    double deltaX = xpos - m_lastMouseX;
+    double deltaY = ypos - m_lastMouseY;
+
+    m_lastMouseX = xpos;
+    m_lastMouseY = ypos;
+
+    // Orbit controls with left mouse button
+    if (m_mouseLeftPressed) {
+        const float orbitSpeed = 0.005f;
+        m_camera->orbit(
+            static_cast<float>(-deltaX) * orbitSpeed,
+            static_cast<float>(-deltaY) * orbitSpeed
+        );
+    }
+
+    // Pan controls with right mouse button
+    if (m_mouseRightPressed) {
+        m_camera->pan(
+            static_cast<float>(deltaX),
+            static_cast<float>(deltaY)
+        );
+    }
+}
+
+void Application::handleMouseScroll(double yoffset) {
+    if (!m_camera) return;
+
+    // Zoom with scroll wheel
+    const float zoomSpeed = 0.1f;
+    m_camera->zoom(static_cast<float>(yoffset) * zoomSpeed);
 }

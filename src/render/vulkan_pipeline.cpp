@@ -299,7 +299,7 @@ bool VulkanPipeline::createGraphicsPipeline(VulkanContext& context, const Pipeli
     viewportState.setPScissors(&scissor);
 
     vk::PipelineRasterizationStateCreateInfo rasterizer{};
-    rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+    rasterizer.setPolygonMode(config.polygonMode);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
     rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);

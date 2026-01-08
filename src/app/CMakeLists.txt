@@ -15,6 +15,7 @@ target_link_libraries(usd_vk_app
     usd_vk_core
     usd_vk_render
     usd_vk_scene
+    usd_vk_camera
     usd_vk_ui
 )
 

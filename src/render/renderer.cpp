@@ -4,6 +4,7 @@
 #include "vulkan_pipeline.hpp"
 #include "shader.hpp"
 #include "scene/scene.hpp"
+#include "camera/camera.hpp"
 #include "ui/imgui_renderer.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -209,10 +210,12 @@ void Renderer::render(VulkanContext& context, Scene* scene) {
 
         m_commandBuffers[imageIndex].beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-        if (m_pipeline && m_pipeline->getPipeline()) {
+        // Select pipeline based on wireframe mode
+        VulkanPipeline* activePipeline = m_wireframeMode ? m_wireframePipeline.get() : m_pipeline.get();
+        if (activePipeline && activePipeline->getPipeline()) {
             m_commandBuffers[imageIndex].bindPipeline(
                 vk::PipelineBindPoint::eGraphics,
-                m_pipeline->getPipeline()
+                activePipeline->getPipeline()
             );
 
             // Create viewport and scissor
@@ -316,10 +319,12 @@ void Renderer::recordCommandBuffers(VulkanContext& context) {
 
         m_commandBuffers[i].beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-        if (m_pipeline && m_pipeline->getPipeline()) {
+        // Select pipeline based on wireframe mode
+        VulkanPipeline* activePipeline = m_wireframeMode ? m_wireframePipeline.get() : m_pipeline.get();
+        if (activePipeline && activePipeline->getPipeline()) {
             m_commandBuffers[i].bindPipeline(
                 vk::PipelineBindPoint::eGraphics,
-                m_pipeline->getPipeline()
+                activePipeline->getPipeline()
             );
 
             // Create viewport and scissor
@@ -382,6 +387,7 @@ void Renderer::cleanup(VulkanContext& context) {
     m_renderPass = vk::RenderPass();
 
     m_pipeline.reset();
+    m_wireframePipeline.reset();
     m_vertexShader.reset();
     m_fragmentShader.reset();
 
@@ -463,9 +469,10 @@ bool Renderer::createPipeline(VulkanContext& context) {
         return false;
     }
 
+    // Create fill mode pipeline (solid rendering)
     m_pipeline = std::make_unique<VulkanPipeline>();
 
-    // Attach shaders
+    // Attach shaders to fill pipeline
     if (!m_pipeline->attachVertexShader(context, *m_vertexShader)) {
         SPDLOG_ERROR("Failed to attach vertex shader");
         return false;
@@ -487,19 +494,49 @@ bool Renderer::createPipeline(VulkanContext& context) {
         return false;
     }
 
-    // Create graphics pipeline
+    // Create graphics pipeline config
     PipelineConfig config;
     config.renderPass = m_renderPass;
     config.extent = context.getSwapchain().getExtent();
     config.vertexBinding = Vertex::getBindingDescription();
     auto attribs = Vertex::getAttributeDescriptions();
     config.vertexAttributes.assign(attribs.begin(), attribs.end());
+    config.polygonMode = vk::PolygonMode::eFill;  // Solid fill
 
     if (!m_pipeline->createGraphicsPipeline(context, config)) {
         SPDLOG_ERROR("Failed to create graphics pipeline");
         return false;
     }
 
+    // Create wireframe pipeline (shares shaders and layout)
+    m_wireframePipeline = std::make_unique<VulkanPipeline>();
+
+    // Attach same shaders to wireframe pipeline
+    if (!m_wireframePipeline->attachVertexShader(context, *m_vertexShader)) {
+        SPDLOG_ERROR("Failed to attach vertex shader to wireframe pipeline");
+        return false;
+    }
+
+    if (!m_wireframePipeline->attachFragmentShader(context, *m_fragmentShader)) {
+        SPDLOG_ERROR("Failed to attach fragment shader to wireframe pipeline");
+        return false;
+    }
+
+    // Share the same pipeline layout
+    if (!m_wireframePipeline->createPipelineLayout(context, { pushConstantRange })) {
+        SPDLOG_ERROR("Failed to create wireframe pipeline layout");
+        return false;
+    }
+
+    // Create wireframe graphics pipeline (only difference is polygon mode)
+    config.polygonMode = vk::PolygonMode::eLine;  // Wireframe
+
+    if (!m_wireframePipeline->createGraphicsPipeline(context, config)) {
+        SPDLOG_ERROR("Failed to create wireframe graphics pipeline");
+        return false;
+    }
+
+    SPDLOG_INFO("Created fill and wireframe pipelines");
     return true;
 }
 
@@ -520,29 +557,40 @@ void Renderer::updateAndPushConstants(VulkanContext& context, vk::CommandBuffer 
         ubo.model = glm::mat4(1.0f);
     }
 
-    // View matrix - camera position
-    ubo.view = glm::lookAt(
-        glm::vec3(2.0f, 2.0f, 2.0f),  // Camera position
-        glm::vec3(0.0f, 0.0f, 0.0f),   // Look at origin
-        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
-    );
+    // View matrix - from camera or default
+    if (m_camera) {
+        ubo.view = m_camera->getViewMatrix();
+    } else {
+        ubo.view = glm::lookAt(
+            glm::vec3(2.0f, 2.0f, 2.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+    }
 
-    // Projection matrix
+    // Projection matrix - from camera or default
     auto extent = context.getSwapchain().getExtent();
-    ubo.proj = glm::perspective(
-        glm::radians(45.0f),
-        static_cast<float>(extent.width) / static_cast<float>(extent.height),
-        0.1f,
-        100.0f
-    );
+    if (m_camera) {
+        ubo.proj = m_camera->getProjectionMatrix(
+            static_cast<float>(extent.width) / static_cast<float>(extent.height)
+        );
+    } else {
+        ubo.proj = glm::perspective(
+            glm::radians(45.0f),
+            static_cast<float>(extent.width) / static_cast<float>(extent.height),
+            0.1f,
+            100.0f
+        );
+    }
     ubo.proj[1][1] *= -1;  // Flip Y for Vulkan
 
     // Time for animated noise displacement
     ubo.time = context.getElapsedTime();
 
-    // Push constants
+    // Push constants (use active pipeline's layout)
+    VulkanPipeline* activePipeline = m_wireframeMode ? m_wireframePipeline.get() : m_pipeline.get();
     cmdBuffer.pushConstants(
-        m_pipeline->getPipelineLayout(),
+        activePipeline->getPipelineLayout(),
         vk::ShaderStageFlagBits::eVertex,
         0,
         sizeof(UniformBufferObject),

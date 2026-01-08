@@ -12,6 +12,7 @@ struct PipelineConfig {
     vk::Extent2D extent;
     vk::VertexInputBindingDescription vertexBinding;
     std::vector<vk::VertexInputAttributeDescription> vertexAttributes;
+    vk::PolygonMode polygonMode = vk::PolygonMode::eFill;  // eFill (solid), eLine (wireframe), ePoint
 };
 
 class VulkanPipeline {

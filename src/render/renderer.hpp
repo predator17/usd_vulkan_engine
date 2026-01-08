@@ -10,6 +10,7 @@ class Scene;
 class Shader;
 class VulkanPipeline;
 class VulkanBuffer;
+class Camera;
 
 namespace usd_vk {
     class ImGuiRenderer;
@@ -49,6 +50,21 @@ public:
      * @brief Set the ImGui renderer for UI overlay
      */
     void setImGuiRenderer(usd_vk::ImGuiRenderer* imguiRenderer) { m_imguiRenderer = imguiRenderer; }
+
+    /**
+     * @brief Set the camera for view/projection matrices
+     */
+    void setCamera(Camera* camera) { m_camera = camera; }
+
+    /**
+     * @brief Set wireframe display mode
+     */
+    void setWireframeMode(bool wireframe) { m_wireframeMode = wireframe; }
+
+    /**
+     * @brief Check if wireframe mode is enabled
+     */
+    bool isWireframeMode() const { return m_wireframeMode; }
 
     /**
      * @brief Render a frame
@@ -102,7 +118,8 @@ private:
     // Pipeline and shaders
     std::unique_ptr<Shader> m_vertexShader;
     std::unique_ptr<Shader> m_fragmentShader;
-    std::unique_ptr<VulkanPipeline> m_pipeline;
+    std::unique_ptr<VulkanPipeline> m_pipeline;      // Fill mode pipeline
+    std::unique_ptr<VulkanPipeline> m_wireframePipeline;  // Wireframe mode pipeline
 
     // Mesh buffers
     struct MeshBuffers {
@@ -130,4 +147,10 @@ private:
 
     // UI overlay
     usd_vk::ImGuiRenderer* m_imguiRenderer = nullptr;
+
+    // Camera
+    Camera* m_camera = nullptr;
+
+    // Display mode
+    bool m_wireframeMode = false;
 };

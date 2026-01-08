@@ -8,6 +8,7 @@
 class VulkanContext;
 class Renderer;
 class Scene;
+class Camera;
 
 namespace usd_vk {
     class ImGuiContext;
@@ -96,6 +97,11 @@ public:
     double getCurrentTime() const;
 
     /**
+     * @brief Get the camera
+     */
+    Camera* getCamera() const { return m_camera.get(); }
+
+    /**
      * @brief Set animation playback speed
      * @param speed Multiplier (1.0 = normal speed)
      */
@@ -121,6 +127,11 @@ public:
      */
     void nextFrame() { m_currentFrame = std::min(m_endFrame, m_currentFrame + 1.0f); m_playing = false; SPDLOG_INFO("Frame: {}", m_currentFrame); }
 
+    // Mouse input handling for orbit controls (public for GLFW callbacks)
+    void handleMouseButton(int button, int action, int mods);
+    void handleMouseMotion(double xpos, double ypos);
+    void handleMouseScroll(double yoffset);
+
 private:
     bool createWindow(const std::string& title, int width, int height);
     void destroyWindow();
@@ -131,6 +142,7 @@ private:
     std::unique_ptr<VulkanContext> m_context;
     std::unique_ptr<Renderer> m_renderer;
     std::unique_ptr<Scene> m_scene;
+    std::unique_ptr<Camera> m_camera;
 
     // ImGui components
     std::unique_ptr<usd_vk::ImGuiContext> m_imguiContext;
@@ -156,6 +168,12 @@ private:
     float m_startFrame = 0.0f;
     float m_endFrame = 100.0f;
     bool m_loop = true;
+
+    // Mouse input state for orbit controls
+    bool m_mouseLeftPressed = false;
+    bool m_mouseRightPressed = false;
+    double m_lastMouseX = 0.0;
+    double m_lastMouseY = 0.0;
 };
 
 // Global application pointer for GLFW callbacks
