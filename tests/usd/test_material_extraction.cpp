@@ -5,7 +5,7 @@
 #include <pxr/usd/usdShade/shader.h>
 #include <fstream>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Material extraction: From Material prim", "[usd][material]") {
     std::string tempFile = "/tmp/test_material.usda";

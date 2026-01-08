@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace usd_ve {
+namespace usd_vk {
 
 class Bounds {
 public:
@@ -32,4 +32,4 @@ private:
     bool m_valid = false;
 };
 
-} // namespace usd_ve
+} // namespace usd_vk

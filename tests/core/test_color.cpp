@@ -2,7 +2,7 @@
 #include <core/color.hpp>
 #include <cmath>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Color: Default construction", "[core][color]") {
     Color color;

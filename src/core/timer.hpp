@@ -3,7 +3,7 @@
 #include <chrono>
 #include <string>
 
-namespace usd_ve {
+namespace usd_vk {
 
 class Timer {
 public:
@@ -34,4 +34,4 @@ private:
     Timer m_timer;
 };
 
-} // namespace usd_ve
+} // namespace usd_vk

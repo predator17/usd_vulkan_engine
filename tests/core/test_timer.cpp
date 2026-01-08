@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Timer: Default construction", "[core][timer]") {
     Timer timer;

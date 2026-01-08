@@ -57,7 +57,7 @@ ShaderCompiler::CompileResult ShaderCompiler::compileGLSL(const std::string& gls
     }
 
     // Create temporary file for GLSL source
-    std::filesystem::path tempPath = std::filesystem::temp_directory_path() / "usd_ve_temp_XXXXXX";
+    std::filesystem::path tempPath = std::filesystem::temp_directory_path() / "usd_vk_temp_XXXXXX";
     std::string glslFile = tempPath.string() + Shader::getStageExtension(stage);
     std::string spirvFile = tempPath.string() + ".spv";
 

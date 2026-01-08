@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Bounds: Default construction", "[core][bounds]") {
     Bounds bounds;

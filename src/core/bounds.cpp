@@ -1,6 +1,6 @@
 #include "bounds.hpp"
 
-namespace usd_ve {
+namespace usd_vk {
 
 void Bounds::computeFromVertices(const std::vector<glm::vec3>& vertices) {
     if (vertices.empty()) {
@@ -60,4 +60,4 @@ bool Bounds::intersects(const Bounds& other) const {
            m_min.z <= other.m_max.z && m_max.z >= other.m_min.z;
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

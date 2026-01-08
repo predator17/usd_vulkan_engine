@@ -1,6 +1,6 @@
 #include "transform.hpp"
 
-namespace usd_ve {
+namespace usd_vk {
 
 void Transform::setPosition(const glm::vec3& pos) {
     m_position = pos;
@@ -107,4 +107,4 @@ void Transform::update() {
     }
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

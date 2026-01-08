@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 
-namespace usd_ve {
+namespace usd_vk {
 
 class Transform {
 public:
@@ -55,4 +55,4 @@ private:
     glm::mat4 m_worldMatrix{1.0f};
 };
 
-} // namespace usd_ve
+} // namespace usd_vk

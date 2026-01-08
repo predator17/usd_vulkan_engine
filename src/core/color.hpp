@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace usd_ve {
+namespace usd_vk {
 
 class Color {
 public:
@@ -55,4 +55,4 @@ inline Color operator*(const Color& c, float s) {
     return Color(c.m_r * s, c.m_g * s, c.m_b * s, c.m_a * s);
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

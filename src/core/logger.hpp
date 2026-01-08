@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-namespace usd_ve {
+namespace usd_vk {
 
 class Logger {
 public:
@@ -55,4 +55,4 @@ public:
     }
 };
 
-} // namespace usd_ve
+} // namespace usd_vk

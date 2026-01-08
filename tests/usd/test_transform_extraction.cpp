@@ -8,7 +8,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <fstream>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Transform extraction: From Xform prim", "[usd][transform]") {
     std::string tempFile = "/tmp/test_xform.usda";

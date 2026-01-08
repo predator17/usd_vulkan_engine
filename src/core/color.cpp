@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace usd_ve {
+namespace usd_vk {
 
 Color::Color(float r, float g, float b, float a)
     : m_r(std::clamp(r, 0.0f, 1.0f)),
@@ -113,4 +113,4 @@ Color Color::black() {
     return Color(0.0f, 0.0f, 0.0f);
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <cstdio>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("USDStage: Default construction", "[usd][stage]") {
     USDStage stage;

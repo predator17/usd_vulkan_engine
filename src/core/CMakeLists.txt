@@ -18,6 +18,6 @@ set(CORE_HEADERS
     transform.hpp
 )
 
-add_library(usd_ve_core ${CORE_SOURCES})
-target_include_directories(usd_ve_core PUBLIC ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(usd_ve_core PUBLIC spdlog::spdlog glm::glm)
+add_library(usd_vk_core ${CORE_SOURCES})
+target_include_directories(usd_vk_core PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(usd_vk_core PUBLIC spdlog::spdlog glm::glm)

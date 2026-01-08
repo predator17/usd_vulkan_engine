@@ -1,6 +1,6 @@
 #include "logger.hpp"
 
-namespace usd_ve {
+namespace usd_vk {
 
 namespace {
 std::shared_ptr<spdlog::logger> s_logger;
@@ -8,7 +8,7 @@ std::shared_ptr<spdlog::logger> s_logger;
 
 void Logger::init() {
     try {
-        s_logger = spdlog::stdout_color_mt("usd_ve");
+        s_logger = spdlog::stdout_color_mt("usd_vk");
         s_logger->set_level(spdlog::level::info);
         s_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
         spdlog::register_logger(s_logger);
@@ -36,4 +36,4 @@ void Logger::setLevel(spdlog::level::level_enum level) {
     }
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

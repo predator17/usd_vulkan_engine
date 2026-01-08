@@ -25,11 +25,11 @@ file(GLOB_RECURSE TEST_SOURCES
 set(TEST_MAIN "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 
 # Create individual test executables for each category
-function(add_usd_ve_test test_name)
+function(add_usd_vk_test test_name)
     add_executable(${test_name} ${ARGN})
     target_link_libraries(${test_name}
         PRIVATE
-        usd_ve_core
+        usd_vk_core
         Catch2::Catch2
         Vulkan::Vulkan
         glm::glm
@@ -51,12 +51,12 @@ function(add_usd_ve_test test_name)
     set_target_properties(${test_name} PROPERTIES FOLDER "Tests")
 endfunction()
 
-function(add_usd_ve_usd_test test_name)
+function(add_usd_vk_usd_test test_name)
     add_executable(${test_name} ${ARGN})
     target_link_libraries(${test_name}
         PRIVATE
-        usd_ve_core
-        usd_ve_usd
+        usd_vk_core
+        usd_vk_usd
         Catch2::Catch2
         Threads::Threads
     )
@@ -73,12 +73,12 @@ function(add_usd_ve_usd_test test_name)
     set_target_properties(${test_name} PROPERTIES FOLDER "Tests")
 endfunction()
 
-function(add_usd_ve_render_test test_name)
+function(add_usd_vk_render_test test_name)
     add_executable(${test_name} ${ARGN})
     target_link_libraries(${test_name}
         PRIVATE
-        usd_ve_core
-        usd_ve_render
+        usd_vk_core
+        usd_vk_render
         Catch2::Catch2
         Vulkan::Vulkan
         glm::glm
@@ -117,17 +117,17 @@ endforeach()
 
 # Create test executables
 if(CORE_TEST_SOURCES)
-    add_usd_ve_test(usd_ve_core_tests ${TEST_MAIN} ${CORE_TEST_SOURCES})
+    add_usd_vk_test(usd_vk_core_tests ${TEST_MAIN} ${CORE_TEST_SOURCES})
 endif()
 
 if(USD_TEST_SOURCES AND USD_FOUND)
-    add_usd_ve_usd_test(usd_ve_usd_tests ${TEST_MAIN} ${USD_TEST_SOURCES})
+    add_usd_vk_usd_test(usd_vk_usd_tests ${TEST_MAIN} ${USD_TEST_SOURCES})
 elseif(USD_TEST_SOURCES)
     message(STATUS "USD tests skipped (USD not found)")
 endif()
 
 if(RENDER_TEST_SOURCES)
-    add_usd_ve_render_test(usd_ve_render_tests ${TEST_MAIN} ${RENDER_TEST_SOURCES})
+    add_usd_vk_render_test(usd_vk_render_tests ${TEST_MAIN} ${RENDER_TEST_SOURCES})
 endif()
 
 # Summary

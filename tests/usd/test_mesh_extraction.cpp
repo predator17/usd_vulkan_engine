@@ -7,7 +7,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Mesh: Default construction", "[usd][mesh]") {
     Mesh mesh;

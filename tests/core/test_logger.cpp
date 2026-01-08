@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Logger: Initialization", "[core][logger]") {
     SECTION("Get logger instance") {

@@ -10,13 +10,13 @@ set(USD_HEADERS
     mesh.hpp
 )
 
-add_library(usd_ve_usd ${USD_SOURCES})
-target_include_directories(usd_ve_usd PUBLIC ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(usd_ve_usd PUBLIC usd_ve_core)
+add_library(usd_vk_usd ${USD_SOURCES})
+target_include_directories(usd_vk_usd PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(usd_vk_usd PUBLIC usd_vk_core)
 
 # USD libraries (if available)
 if(EXISTS "${USD_LIB_DIR}")
-    target_link_libraries(usd_ve_usd PUBLIC
+    target_link_libraries(usd_vk_usd PUBLIC
         ${USD_LIB_DIR}/libusd.so
         ${USD_LIB_DIR}/libusdGeom.so
         ${USD_LIB_DIR}/libusd_sdf.so

@@ -1,7 +1,7 @@
 #include "timer.hpp"
 #include <cstdio>
 
-namespace usd_ve {
+namespace usd_vk {
 
 Timer::Timer() {
     start();
@@ -54,4 +54,4 @@ ScopedTimer::~ScopedTimer() {
     }
 }
 
-} // namespace usd_ve
+} // namespace usd_vk

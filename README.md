@@ -177,7 +177,7 @@ sudo pacman -S glfw-x11
 
 ## Architecture
 
-### Core Library (`usd_ve_core`)
+### Core Library (`usd_vk_core`)
 
 Foundational data structures:
 
@@ -187,7 +187,7 @@ Foundational data structures:
 - **Timer**: High-resolution timer with scoped timing
 - **Logger**: spdlog wrapper for consistent logging
 
-### USD Integration (`usd_ve_usd`)
+### USD Integration (`usd_vk_usd`)
 
 USD scene loading interface:
 
@@ -196,7 +196,7 @@ USD scene loading interface:
 - **Mesh Extraction**: Extract mesh data from USD prims
 - **Material Extraction**: Extract material data (API ready)
 
-### Vulkan Rendering (`usd_ve_render`)
+### Vulkan Rendering (`usd_vk_render`)
 
 Complete Vulkan rendering system:
 
@@ -208,13 +208,13 @@ Complete Vulkan rendering system:
 - **Shader**: SPIR-V shader loading with hot-reload support
 - **Renderer**: Main rendering orchestrator with push constants
 
-### Scene Management (`usd_ve_scene`)
+### Scene Management (`usd_vk_scene`)
 
 - **Scene**: Scene container with MeshData array
 - **MeshData**: Vertices, normals, colors, texcoords, indices, transforms
 - **Animation**: Time-based animation updates
 
-### Application (`usd_ve_app`)
+### Application (`usd_vk_app`)
 
 - **Application**: Main application class
   - Window creation and event handling
@@ -243,14 +243,14 @@ Shaders are compiled to SPIR-V at build time to `build/shaders/`.
 LD_LIBRARY_PATH=../external/USD/install/lib:$LD_LIBRARY_PATH ctest --output-on-failure
 
 # Run specific test suite
-./tests/usd_ve_core_tests -s
-./tests/usd_ve_render_tests -s
+./tests/usd_vk_core_tests -s
+./tests/usd_vk_render_tests -s
 
 # Run specific test case
-./tests/usd_ve_render_tests "Shader: Load from SPIR-V"
+./tests/usd_vk_render_tests "Shader: Load from SPIR-V"
 
 # Run shader tests only
-./tests/usd_ve_render_tests "[shader]"
+./tests/usd_vk_render_tests "[shader]"
 ```
 
 ## Build Configuration Options
@@ -287,7 +287,7 @@ usd_vulkan_engine/
 
 ## Namespace
 
-All project code uses the `usd_ve` namespace to avoid conflicts.
+All project code uses the `usd_vk` namespace to avoid conflicts.
 
 ## License
 

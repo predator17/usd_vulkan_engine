@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
-using namespace usd_ve;
+using namespace usd_vk;
 
 TEST_CASE("Transform: Default construction", "[core][transform]") {
     Transform transform;
