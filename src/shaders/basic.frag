@@ -8,14 +8,14 @@ layout(location = 2) in vec3 fragWorldPos;
 // Output
 layout(location = 0) out vec4 outColor;
 
-// Constants for blue metal material
-const vec3 BASE_COLOR = vec3(0.1, 0.3, 0.8);  // Deep blue base
-const vec3 METAL_COLOR = vec3(0.3, 0.6, 1.0);   // Brighter blue for highlights
-const float METALNESS = 0.9;                      // Almost fully metallic
-const float ROUGHNESS = 0.25;                     // Semi-shiny metal
-const float SPECULAR_STRENGTH = 1.5;              // Boosted specular for metal
+// Blue metal material - cleaner look
+const vec3 BASE_COLOR = vec3(0.2, 0.35, 0.6);   // Muted blue base
+const vec3 METAL_COLOR = vec3(0.4, 0.6, 0.9);    // Bright blue highlights
+const float METALNESS = 0.9;                      // Metallic
+const float ROUGHNESS = 0.35;                      // Semi-matte
+const float SPECULAR_STRENGTH = 2.2;              // Strong highlights
 
-// Light positions (multiple lights for interesting reflections)
+// Light positions
 const vec3 LIGHT_DIRECTIONS[3] = vec3[3](
     normalize(vec3(1.0, 1.0, 1.0)),    // Top-right-front
     normalize(vec3(-1.0, 0.5, 0.5)),   // Top-left-front
@@ -46,7 +46,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 void main() {
     vec3 normal = normalize(fragNormal);
 
-    // Camera/view direction (assuming camera at positive Z looking at origin)
+    // Camera/view direction
     vec3 viewDir = normalize(vec3(0.0, 0.0, 5.0) - fragWorldPos);
 
     // Fresnel base reflectivity for metals
@@ -64,7 +64,7 @@ void main() {
         vec3 lightDir = LIGHT_DIRECTIONS[i];
         vec3 lightColor = LIGHT_COLORS[i];
 
-        // Diffuse (Lambertian) - metals absorb more light
+        // Diffuse (Lambertian)
         float NdotL = max(dot(normal, lightDir), 0.0);
         diffuse += (1.0 - METALNESS) * BASE_COLOR * NdotL * lightColor;
 
@@ -76,13 +76,12 @@ void main() {
 
     // Rim lighting for metallic edge glow
     float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-    rim = pow(rim, 4.0) * 0.5;
+    rim = pow(rim, 4.0) * 0.4;
     vec3 rimColor = METAL_COLOR * rim * vec3(0.5, 0.7, 1.0);
 
     // Combine all components
-    // For metals: more specular, less diffuse
-    vec3 ambient = BASE_COLOR * 0.15;  // Subtle ambient
-    vec3 color = ambient + diffuse * 0.3 + specular + rimColor;
+    vec3 ambient = BASE_COLOR * 0.15;
+    vec3 color = ambient + diffuse * 0.35 + specular + rimColor;
 
     // Tone mapping (simple Reinhard)
     color = color / (color + vec3(1.0));

@@ -537,6 +537,9 @@ void Renderer::updateAndPushConstants(VulkanContext& context, vk::CommandBuffer 
     );
     ubo.proj[1][1] *= -1;  // Flip Y for Vulkan
 
+    // Time for animated noise displacement
+    ubo.time = context.getElapsedTime();
+
     // Push constants
     cmdBuffer.pushConstants(
         m_pipeline->getPipelineLayout(),
