@@ -1,0 +1,85 @@
+# Build directories
+build/
+cmake-build-debug*/
+out/
+cmake-out*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+cmake_check_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+*.lib
+*.a
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+
+# Qt/IDE specific
+*.autosave
+*.qmlc
+*.jsc
+Makefile*
+*.make
+*.user
+*.pro.user
+*.qmlproject.user
+*.workspace
+.metadata/
+
+# IDE specific
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.cproject
+.settings/
+
+# clangd
+.clangd/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# USD build artifacts (keep source, remove build)
+external/USD/install/
+external/USD/OpenUSD-src/
+external/USD/*.tar.gz
+external/USD/*.zip
+
+# Log files
+*.log
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
