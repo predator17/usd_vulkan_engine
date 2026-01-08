@@ -10,20 +10,27 @@ A C++20 real-time USD (Universal Scene Description) viewer built with Vulkan ren
 - **Math**: GLM 0.9.9.8
 - **Logging**: spdlog v1.12.0
 - **Window**: GLFW3
+- **UI**: Dear ImGui v1.91.x, ImGuiFileDialog
 - **Testing**: Catch2 v2.13.10
 - **Build**: CMake 3.20+
 
 ## Features
 
-- ✅ Real-time Vulkan rendering with graphics pipeline
-- ✅ USD scene file loading (.usda, .usdc, .usd)
-- ✅ Mesh extraction with vertices, normals, colors, indices
-- ✅ Basic lighting (directional light with ambient + diffuse)
+### Implemented
+- ✅ Real-time Vulkan rendering with complete graphics pipeline
+- ✅ **Orbit camera** with mouse controls (rotate, pan, zoom)
+- ✅ **In-engine UI** with ImGui (file browser, playback controls)
+- ✅ **Wireframe display mode** toggle
+- ✅ **Blue metal shader** with PBR-style lighting
 - ✅ Animation playback controls (play/pause, frame stepping)
-- ✅ Shader hot-reload support
+- ✅ Shader hot-reload support during development
 - ✅ Spinning cube demo
+- ✅ Comprehensive test suite (677 assertions across 137 tests)
 
-## Quick Start
+### Partially Implemented
+- ⚠️ USD scene file loading (API ready, parser uses hardcoded demo)
+
+### Quick Start
 
 ```bash
 # Clone or navigate to project
@@ -32,17 +39,17 @@ cd usd_vulkan_engine
 # Create build directory
 mkdir build && cd build
 
-# Configure (tests disabled to avoid USD dependency issues)
-cmake -DUSD_VULKAN_ENGINE_BUILD_TESTS=OFF ..
+# Configure
+cmake ..
 
 # Build
 make -j$(nproc)
 
-# Run the engine with a USD file
-./src/app/usd_vulkan_engine ../data/spinning_cube.usda
+# Run the engine
+LD_LIBRARY_PATH=../external/USD/install/lib:$LD_LIBRARY_PATH ./src/app/usd_vulkan_engine
 ```
 
-**Note:** Tests require additional USD dependencies. To build tests, ensure USD is built with full support (Python, Imaging, etc.).
+## Controls
 
 ### Keyboard Controls
 
@@ -53,9 +60,25 @@ make -j$(nproc)
 | **LEFT** | Step to previous frame |
 | **RIGHT** | Step to next frame |
 
+### Mouse Controls
+
+| Input | Action |
+|-------|--------|
+| **Left Click + Drag** | Orbit camera (rotate around target) |
+| **Right Click + Drag** | Pan camera |
+| **Scroll Wheel** | Zoom in/out |
+
+### UI Controls
+
+| Menu | Action |
+|------|--------|
+| **File → Open USD...** | Open file dialog to load USD files |
+| **View → Wireframe Mode** | Toggle between solid and wireframe rendering |
+| **View → Show Stats** | Toggle stats display |
+
 ## Cleanup
 
-The project includes automatic post-build cleanup to keep source directories clean. Additional cleanup commands are available:
+The project includes automatic post-build cleanup to keep source directories clean.
 
 ### Shell Script (Recommended)
 
@@ -76,13 +99,33 @@ make distclean       # Remove entire build directory
 make help-cleanup    # Show cleanup help
 ```
 
-**Note:** Post-build cleanup runs automatically after each build to remove CMake artifacts from source directories.
-
 ## Dependencies Setup
 
-### Required External Dependencies
+### System Dependencies
 
-These should be in `external/` directory:
+```bash
+# Vulkan SDK (headers + glslangValidator)
+# Ubuntu/Debian:
+sudo apt install vulkan-sdk glslang-tools
+
+# Fedora:
+sudo dnf install vulkan-devel glslang
+
+# Arch:
+sudo pacman -S vulkan-headers glslang
+
+# GLFW3
+# Ubuntu/Debian:
+sudo apt install libglfw3-dev
+
+# Fedora:
+sudo dnf install glfw-devel
+
+# Arch:
+sudo pacman -S glfw-x11
+```
+
+### External Dependencies (external/)
 
 ```bash
 # In project root
@@ -98,6 +141,12 @@ git clone --depth 1 --branch v0.9.9.8 https://github.com/g-truc/glm.git
 
 # Catch2 (testing)
 git clone --depth 1 --branch v2.x https://github.com/catchorg/Catch2.git
+
+# ImGui (UI)
+git clone --depth 1 https://github.com/ocornut/imgui.git
+
+# ImGuiFileDialog (file dialog)
+git clone --depth 1 https://github.com/aiekick/ImGuiFileDialog.git
 ```
 
 ### USD Installation (Required)
@@ -128,30 +177,6 @@ make -j$(nproc)
 make install
 ```
 
-### System Dependencies
-
-```bash
-# Vulkan SDK (headers + glslangValidator)
-# Ubuntu/Debian:
-sudo apt install vulkan-sdk glslang-tools
-
-# Fedora:
-sudo dnf install vulkan-devel glslang
-
-# Arch:
-sudo pacman -S vulkan-headers glslang
-
-# GLFW3
-# Ubuntu/Debian:
-sudo apt install libglfw3-dev
-
-# Fedora:
-sudo dnf install glfw-devel
-
-# Arch:
-sudo pacman -S glfw-x11
-```
-
 ## Project Status
 
 | Phase | Status | Tests | Notes |
@@ -161,28 +186,30 @@ sudo pacman -S glfw-x11
 | 2: USD Integration | ⚠️ | - | API ready, parser needs implementation |
 | 3: Vulkan Foundation | ✅ | 202 | Context, Swapchain, Framebuffer |
 | 4: Vulkan Pipeline | ✅ | 95 | Buffer, Descriptor, Pipeline |
-| 5: Shaders | ✅ | - | Vertex/Fragment shaders with lighting |
-| 6: Main Renderer | ✅ | - | Command buffer recording, synchronization |
-| 7: Scene Integration | ✅ | - | Scene loading, mesh rendering |
-| 8: End-to-End | ✅ | - | Working USD viewer with animation |
+| 5: Shaders | ✅ | - | Blue metal shader with PBR lighting |
+| 6: Main Renderer | ✅ | - | Wireframe mode, dual pipeline system |
+| 7: Camera System | ✅ | - | Orbit controls with mouse input |
+| 8: UI System | ✅ | - | ImGui integration, file browser |
+| 9: Scene Integration | ✅ | - | Scene loading, mesh rendering |
+| 10: End-to-End | ✅ | - | Working viewer with all controls |
 
 **Test Results:**
 - Core: 400 assertions in 64 test cases
 - Render: 277 assertions in 73 test cases
 - **Total: 677 assertions in 137 test cases**
 
-**Progress: ~90% Complete** (Basic USD viewer working, full USD parser pending)
+**Progress: ~90% Complete** (Full USD parser pending)
 
 ## Known Limitations & TODO
 
 ### TODO Items
 
-1. **USD Parser Implementation** (`src/scene/scene.cpp:44,51`)
+1. **USD Parser Implementation** (`src/scene/scene.cpp`)
    - Current: Hardcoded test cube for demonstration
    - Needed: Proper USDA/USDC file parsing with mesh extraction
    - Priority: HIGH for USD file support
 
-2. **USD Stage Loading** (`src/usd/stage.cpp:14`)
+2. **USD Stage Loading** (`src/usd/stage.cpp`)
    - UsdStageWrapper::load() needs implementation
    - Should leverage USD C++ API for proper scene loading
 
@@ -198,7 +225,7 @@ sudo pacman -S glfw-x11
 
 - Scene creates a hardcoded spinning cube instead of parsing USD files
 - Animation is procedural (rotation based on time) rather than USD-driven
-- Single color/material for all geometry
+- Single material (blue metal) for all geometry
 
 ## Architecture
 
@@ -211,15 +238,36 @@ Foundational data structures:
 - **Transform**: TRS hierarchy with parent-child relationships
 - **Timer**: High-resolution timer with scoped timing
 - **Logger**: spdlog wrapper for consistent logging
+- **Assert**: Custom assertion system with debug breakpoint support
+
+### Camera System (`usd_vk_camera`)
+
+- **Camera**: Perspective camera with orbit controls
+  - Spherical coordinates (radius, azimuth, elevation)
+  - Mouse input handling for orbit, pan, and zoom
+  - View and projection matrix generation
+
+### UI System (`usd_vk_ui`)
+
+Complete Dear ImGui integration:
+
+- **ImGuiContext**: ImGui context and GLFW backend management
+- **ImGuiRenderer**: Vulkan-specific rendering for ImGui
+- **ImGuiUI**: Main UI implementation
+  - Menu bar with File, View, Help menus
+  - File browser dialog using ImGuiFileDialog
+  - Playback controls (play/pause, frame slider, step buttons)
+  - Stats display (FPS, frame info, display mode)
+- **ImGuiFileDialog**: Wrapper for file selection dialog
 
 ### USD Integration (`usd_vk_usd`)
 
-USD scene loading interface:
+USD scene loading interface (pimpl pattern):
 
-- **Stage**: USD stage loading and traversal (pimpl pattern)
-- **UsdStageWrapper**: RAII wrapper for UsdStage
-- **Mesh Extraction**: Extract mesh data from USD prims
-- **Material Extraction**: Extract material data (API ready)
+- **Stage**: USD stage loading interface
+- **Mesh**: Mesh extraction API
+
+Note: Current implementation uses placeholder with hardcoded demo data.
 
 ### Vulkan Rendering (`usd_vk_render`)
 
@@ -229,9 +277,12 @@ Complete Vulkan rendering system:
 - **VulkanSwapchain**: Swapchain, depth buffer, render pass, framebuffers
 - **VulkanBuffer**: Base buffer with VertexBuffer, IndexBuffer, UniformBuffer
 - **VulkanDescriptor**: Descriptor set layout and pool management
-- **VulkanPipeline**: Graphics pipeline with depth stencil, rasterizer state
+- **VulkanPipeline**: Graphics pipeline with configurable polygon mode (fill/wireframe)
 - **Shader**: SPIR-V shader loading with hot-reload support
-- **Renderer**: Main rendering orchestrator with push constants
+- **Renderer**: Main rendering orchestrator
+  - Dual pipeline system (solid fill + wireframe)
+  - Push constants for transform matrices
+  - Command buffer recording and synchronization
 
 ### Scene Management (`usd_vk_scene`)
 
@@ -242,8 +293,11 @@ Complete Vulkan rendering system:
 ### Application (`usd_vk_app`)
 
 - **Application**: Main application class
-  - Window creation and event handling
+  - Window creation and event handling (GLFW)
   - Main loop with delta time
+  - Keyboard input (ESC, SPACE, LEFT, RIGHT)
+  - Mouse input (orbit camera controls)
+  - ImGui integration
   - Animation controls (play/pause, frame step)
   - Graceful shutdown on signals
 
@@ -251,13 +305,28 @@ Complete Vulkan rendering system:
 
 Located in `src/shaders/`:
 
-- **basic.vert**: Vertex shader with position, color, normal inputs
-  - Push constants: model, view, projection matrices
-  - Outputs: color, normal, world position to fragment shader
+### basic.vert
+Vertex shader with full transform support:
+- Inputs: position, color, normal
+- Push constants: model, view, projection matrices, time
+- Outputs: color, normal, world position to fragment shader
+- Normal transformation to world space
 
-- **basic.frag**: Fragment shader with directional lighting
-  - Ambient (20%) + Lambertian diffuse
-  - Light direction: (1, 1, 1)
+### basic.frag
+Blue metal fragment shader with PBR-style lighting:
+- **Three-point lighting**: Main, fill, and accent lights
+- **Blinn-Phong specular**: High shininess for metallic appearance
+- **Fresnel-Schlick**: Metallic edge effects
+- **Rim lighting**: Blue-tinted edge glow
+- **Tone mapping**: Reinhard tone mapping
+- **Gamma correction**: sRGB output
+
+Constants:
+- Base color: Muted blue (0.2, 0.35, 0.6)
+- Metal color: Bright blue (0.4, 0.6, 0.9)
+- Metalness: 0.9
+- Roughness: 0.35
+- Specular strength: 2.2
 
 Shaders are compiled to SPIR-V at build time to `build/shaders/`.
 
@@ -300,9 +369,9 @@ usd_vulkan_engine/
 │   ├── scene/         # Scene management
 │   ├── camera/        # Camera system
 │   ├── shaders/       # GLSL source
+│   ├── ui/            # ImGui UI integration
 │   ├── animation/     # Animation (placeholder)
-│   ├── material/      # Material (placeholder)
-│   └── ui/            # UI (placeholder)
+│   └── material/      # Material (placeholder)
 ├── tests/             # Test suite
 ├── external/          # Third-party dependencies
 ├── cmake/             # CMake modules
