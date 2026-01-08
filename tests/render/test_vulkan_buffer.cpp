@@ -7,6 +7,33 @@
 #include <vector>
 #include <cstring>
 
+// Helper class to manage GLFW initialization
+class GLFWHelper {
+public:
+    static bool ensureInitialized() {
+        if (!s_initialized) {
+            if (glfwInit() == GLFW_TRUE) {
+                s_initialized = true;
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    static void terminate() {
+        if (s_initialized) {
+            
+            s_initialized = false;
+        }
+    }
+
+private:
+    static bool s_initialized;
+};
+
+bool GLFWHelper::s_initialized = false;
+
 TEST_CASE("VulkanBuffer: Default construction", "[render][vulkan][buffer]") {
     VulkanBuffer buffer;
 
@@ -28,7 +55,7 @@ TEST_CASE("VulkanBuffer: Default construction", "[render][vulkan][buffer]") {
 }
 
 TEST_CASE("VulkanBuffer: Create simple buffer", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -37,23 +64,19 @@ TEST_CASE("VulkanBuffer: Create simple buffer", "[render][vulkan][buffer][Vulkan
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
-        return;// SKIP: Vulkan not available
-        return;
+        return;  // SKIP: Vulkan not available
     }
 
     VulkanBuffer buffer;
     vk::DeviceSize size = 1024;
 
-    SECTION("Can create buffer") {
-        bool result = buffer.create(context, size,
-                                     vk::BufferUsageFlagBits::eVertexBuffer,
-                                     vk::MemoryPropertyFlagBits::eHostVisible |
-                                     vk::MemoryPropertyFlagBits::eHostCoherent);
-        if (result) {
-            REQUIRE(buffer.isInitialized());
-            REQUIRE(buffer.getSize() == size);
-        }
+    bool result = buffer.create(context, size,
+                                 vk::BufferUsageFlagBits::eVertexBuffer,
+                                 vk::MemoryPropertyFlagBits::eHostVisible |
+                                 vk::MemoryPropertyFlagBits::eHostCoherent);
+    if (result) {
+        REQUIRE(buffer.isInitialized());
+        REQUIRE(buffer.getSize() == size);
     }
 
     if (buffer.isInitialized()) {
@@ -62,11 +85,10 @@ TEST_CASE("VulkanBuffer: Create simple buffer", "[render][vulkan][buffer][Vulkan
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 TEST_CASE("VulkanBuffer: Double creation protection", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -75,7 +97,7 @@ TEST_CASE("VulkanBuffer: Double creation protection", "[render][vulkan][buffer][
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -97,11 +119,11 @@ TEST_CASE("VulkanBuffer: Double creation protection", "[render][vulkan][buffer][
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VertexBuffer: Create and populate", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -110,7 +132,7 @@ TEST_CASE("VertexBuffer: Create and populate", "[render][vulkan][buffer][VulkanG
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -137,11 +159,11 @@ TEST_CASE("VertexBuffer: Create and populate", "[render][vulkan][buffer][VulkanG
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("IndexBuffer: Create and populate", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -150,7 +172,7 @@ TEST_CASE("IndexBuffer: Create and populate", "[render][vulkan][buffer][VulkanGP
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -175,11 +197,11 @@ TEST_CASE("IndexBuffer: Create and populate", "[render][vulkan][buffer][VulkanGP
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("UniformBuffer: Create and update", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -188,7 +210,7 @@ TEST_CASE("UniformBuffer: Create and update", "[render][vulkan][buffer][VulkanGP
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -233,11 +255,11 @@ TEST_CASE("UniformBuffer: Create and update", "[render][vulkan][buffer][VulkanGP
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VulkanBuffer: Cleanup and recreate", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -246,7 +268,7 @@ TEST_CASE("VulkanBuffer: Cleanup and recreate", "[render][vulkan][buffer][Vulkan
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -273,11 +295,11 @@ TEST_CASE("VulkanBuffer: Cleanup and recreate", "[render][vulkan][buffer][Vulkan
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VulkanBuffer: Different buffer usages", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -286,7 +308,7 @@ TEST_CASE("VulkanBuffer: Different buffer usages", "[render][vulkan][buffer][Vul
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -344,11 +366,11 @@ TEST_CASE("VulkanBuffer: Different buffer usages", "[render][vulkan][buffer][Vul
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VulkanBuffer: Different memory types", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -357,7 +379,7 @@ TEST_CASE("VulkanBuffer: Different memory types", "[render][vulkan][buffer][Vulk
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -395,11 +417,11 @@ TEST_CASE("VulkanBuffer: Different memory types", "[render][vulkan][buffer][Vulk
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VulkanBuffer: Large buffer", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -408,7 +430,7 @@ TEST_CASE("VulkanBuffer: Large buffer", "[render][vulkan][buffer][VulkanGPUTests
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -428,11 +450,11 @@ TEST_CASE("VulkanBuffer: Large buffer", "[render][vulkan][buffer][VulkanGPUTests
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("VertexBuffer: Update functionality", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -441,7 +463,7 @@ TEST_CASE("VertexBuffer: Update functionality", "[render][vulkan][buffer][Vulkan
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -460,11 +482,11 @@ TEST_CASE("VertexBuffer: Update functionality", "[render][vulkan][buffer][Vulkan
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }
 
 TEST_CASE("IndexBuffer: Update functionality", "[render][vulkan][buffer][VulkanGPUTests]") {
-    glfwInit();
+    GLFWHelper::ensureInitialized();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
@@ -473,7 +495,7 @@ TEST_CASE("IndexBuffer: Update functionality", "[render][vulkan][buffer][VulkanG
     VulkanContext context;
     if (!context.initialize(window, false)) {
         glfwDestroyWindow(window);
-        glfwTerminate();
+        
         return;// SKIP: Vulkan not available
         return;
     }
@@ -492,5 +514,5 @@ TEST_CASE("IndexBuffer: Update functionality", "[render][vulkan][buffer][VulkanG
 
     context.shutdown();
     glfwDestroyWindow(window);
-    glfwTerminate();
+    
 }

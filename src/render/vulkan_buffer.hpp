@@ -15,6 +15,9 @@ public:
     VulkanBuffer(const VulkanBuffer&) = delete;
     VulkanBuffer& operator=(const VulkanBuffer&) = delete;
 
+    bool create(VulkanContext& context, vk::DeviceSize size,
+                vk::BufferUsageFlags usage,
+                vk::MemoryPropertyFlags properties);
     void cleanup(VulkanContext& context);
     vk::Buffer getBuffer() const { return m_buffer; }
     vk::DeviceMemory getMemory() const { return m_memory; }

@@ -8,7 +8,7 @@ TEST_CASE("VulkanSwapchain: Default construction", "[render][vulkan][swapchain]"
     VulkanSwapchain swapchain;
 
     SECTION("Initially not created") {
-        REQUIRE_FALSE(swapchain.isCreated());
+        REQUIRE_FALSE(swapchain.isInitialized());
     }
 
     SECTION("Swapchain handle is null") {
@@ -41,7 +41,7 @@ TEST_CASE("VulkanSwapchain: Create and destroy", "[render][vulkan][swapchain][Vu
     SECTION("Can create swapchain") {
         bool result = swapchain.create(context, extent);
         if (result) {
-            REQUIRE(swapchain.isCreated());
+            REQUIRE(swapchain.isInitialized());
             REQUIRE(swapchain.getSwapchain() != vk::SwapchainKHR());
         }
     }
@@ -64,7 +64,7 @@ TEST_CASE("VulkanSwapchain: Create and destroy", "[render][vulkan][swapchain][Vu
         }
     }
 
-    if (swapchain.isCreated()) {
+    if (swapchain.isInitialized()) {
         swapchain.cleanup(context);
     }
     context.shutdown();
@@ -125,11 +125,11 @@ TEST_CASE("VulkanSwapchain: Cleanup and recreate", "[render][vulkan][swapchain][
     SECTION("Can cleanup and recreate") {
         if (swapchain.create(context, extent)) {
             swapchain.cleanup(context);
-            REQUIRE_FALSE(swapchain.isCreated());
+            REQUIRE_FALSE(swapchain.isInitialized());
 
             // Should be able to recreate
             swapchain.create(context, extent);
-            REQUIRE(swapchain.isCreated());
+            REQUIRE(swapchain.isInitialized());
 
             swapchain.cleanup(context);
         }
@@ -160,7 +160,7 @@ TEST_CASE("VulkanSwapchain: Different extents", "[render][vulkan][swapchain][Vul
     SECTION("Small extent") {
         vk::Extent2D extent(64, 64);
         if (swapchain.create(context, extent)) {
-            REQUIRE(swapchain.isCreated());
+            REQUIRE(swapchain.isInitialized());
             swapchain.cleanup(context);
         }
     }
@@ -168,7 +168,7 @@ TEST_CASE("VulkanSwapchain: Different extents", "[render][vulkan][swapchain][Vul
     SECTION("Large extent") {
         vk::Extent2D extent(1920, 1080);
         if (swapchain.create(context, extent)) {
-            REQUIRE(swapchain.isCreated());
+            REQUIRE(swapchain.isInitialized());
             swapchain.cleanup(context);
         }
     }
@@ -202,7 +202,7 @@ TEST_CASE("VulkanSwapchain: Image views count", "[render][vulkan][swapchain][Vul
         }
     }
 
-    if (swapchain.isCreated()) {
+    if (swapchain.isInitialized()) {
         swapchain.cleanup(context);
     }
 
@@ -236,7 +236,7 @@ TEST_CASE("VulkanSwapchain: Render pass creation", "[render][vulkan][swapchain][
         }
     }
 
-    if (swapchain.isCreated()) {
+    if (swapchain.isInitialized()) {
         swapchain.cleanup(context);
     }
 
@@ -272,7 +272,7 @@ TEST_CASE("VulkanSwapchain: Framebuffer creation", "[render][vulkan][swapchain][
         }
     }
 
-    if (swapchain.isCreated()) {
+    if (swapchain.isInitialized()) {
         swapchain.cleanup(context);
     }
 
@@ -303,11 +303,11 @@ TEST_CASE("VulkanSwapchain: Depth buffer", "[render][vulkan][swapchain][VulkanGP
         // Depth buffer creation is part of swapchain creation
         // Just verify swapchain creates successfully
         if (swapchain.create(context, extent)) {
-            REQUIRE(swapchain.isCreated());
+            REQUIRE(swapchain.isInitialized());
         }
     }
 
-    if (swapchain.isCreated()) {
+    if (swapchain.isInitialized()) {
         swapchain.cleanup(context);
     }
 
@@ -335,7 +335,7 @@ TEST_CASE("VulkanSwapchain: Cleanup before create", "[render][vulkan][swapchain]
 
     SECTION("Cleanup before create is safe") {
         swapchain.cleanup(context);
-        REQUIRE_FALSE(swapchain.isCreated());
+        REQUIRE_FALSE(swapchain.isInitialized());
     }
 
     context.shutdown();

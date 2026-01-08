@@ -77,6 +77,7 @@ function(add_usd_ve_render_test test_name)
         glm::glm
         spdlog::spdlog
         Threads::Threads
+        glfw
     )
     target_include_directories(${test_name}
         PRIVATE

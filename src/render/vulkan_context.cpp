@@ -42,14 +42,16 @@ bool VulkanContext::initialize(GLFWwindow* window, bool enableValidationLayers) 
 }
 
 void VulkanContext::shutdown() {
+    // Destroy in reverse order of creation
+    // Only destroy what was actually created
     if (m_device) {
         m_device.destroy();
     }
-    if (m_surface) {
+    if (m_surface && m_instance) {
         m_instance.destroySurfaceKHR(m_surface);
     }
 #ifdef USD_VULKAN_ENGINE_VALIDATION
-    if (m_debugMessenger) {
+    if (m_debugMessenger && m_instance) {
         m_instance.destroyDebugUtilsMessengerEXT(m_debugMessenger);
     }
 #endif

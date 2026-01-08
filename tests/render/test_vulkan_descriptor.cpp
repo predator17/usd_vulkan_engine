@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 #include <render/vulkan_context.hpp>
+#include <render/vulkan_buffer.hpp>
 #include <render/vulkan_descriptor.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

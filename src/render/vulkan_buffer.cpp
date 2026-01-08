@@ -5,6 +5,13 @@
 VulkanBuffer::~VulkanBuffer() {
 }
 
+bool VulkanBuffer::create(VulkanContext& context, vk::DeviceSize size,
+                           vk::BufferUsageFlags usage,
+                           vk::MemoryPropertyFlags properties) {
+    if (m_initialized) return false;
+    return createBuffer(context, size, usage, properties);
+}
+
 bool VulkanBuffer::createBuffer(VulkanContext& context, vk::DeviceSize size,
                                   vk::BufferUsageFlags usage,
                                   vk::MemoryPropertyFlags properties) {

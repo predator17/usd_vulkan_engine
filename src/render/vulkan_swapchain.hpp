@@ -17,6 +17,7 @@ public:
     bool create(VulkanContext& context, vk::Extent2D extent);
     void cleanup(VulkanContext& context);
 
+    bool isInitialized() const { return m_initialized; }
     vk::SwapchainKHR getSwapchain() const { return m_swapchain; }
     const std::vector<vk::ImageView>& getImageViews() const { return m_imageViews; }
     const std::vector<vk::Framebuffer>& getFramebuffers() const { return m_framebuffers; }
