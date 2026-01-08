@@ -8,6 +8,7 @@ set(RENDER_SOURCES
     vulkan_descriptor.cpp
     shader.cpp
     shader_compiler.cpp
+    renderer.cpp
 )
 
 set(RENDER_HEADERS
@@ -18,6 +19,7 @@ set(RENDER_HEADERS
     vulkan_descriptor.hpp
     shader.hpp
     shader_compiler.hpp
+    renderer.hpp
 )
 
 # Shader compilation
@@ -32,8 +34,8 @@ find_program(GLSLANG_VALIDATOR glslangValidator
 if(GLSLANG_VALIDATOR)
     message(STATUS "Found glslangValidator: ${GLSLANG_VALIDATOR}")
 
-    # Find all GLSL shader files
-    file(GLOB_RECURSE GLSL_SHADERS
+    # Find all GLSL shader files (exclude .spv files)
+    file(GLOB GLSL_SHADERS
         "${CMAKE_SOURCE_DIR}/src/shaders/*.vert"
         "${CMAKE_SOURCE_DIR}/src/shaders/*.frag"
         "${CMAKE_SOURCE_DIR}/src/shaders/*.geom"
@@ -41,6 +43,8 @@ if(GLSLANG_VALIDATOR)
         "${CMAKE_SOURCE_DIR}/src/shaders/*.tesc"
         "${CMAKE_SOURCE_DIR}/src/shaders/*.tese"
     )
+    # Filter out .spv files if any were incorrectly matched
+    list(FILTER GLSL_SHADERS EXCLUDE REGEX "\\.spv$")
 
     # Create output directory
     set(SPIRV_OUTPUT_DIR "${CMAKE_BINARY_DIR}/shaders")
@@ -48,13 +52,14 @@ if(GLSLANG_VALIDATOR)
 
     foreach(GLSL ${GLSL_SHADERS})
         get_filename_component(SHADER_NAME ${GLSL} NAME_WE)
-        set(SPIRV "${SPIRV_OUTPUT_DIR}/${SHADER_NAME}.spv")
+        get_filename_component(SHADER_EXT ${GLSL} EXT)
+        set(SPIRV "${SPIRV_OUTPUT_DIR}/${SHADER_NAME}${SHADER_EXT}.spv")
 
         add_custom_command(
             OUTPUT ${SPIRV}
             COMMAND ${GLSLANG_VALIDATOR} -V ${GLSL} -o ${SPIRV}
             DEPENDS ${GLSL}
-            COMMENT "Compiling shader: ${SHADER_NAME}"
+            COMMENT "Compiling shader: ${SHADER_NAME}${SHADER_EXT}"
         )
 
         list(APPEND SPIRV_BINARY_FILES ${SPIRV})

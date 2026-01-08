@@ -1,7 +1,9 @@
 #include <catch2/catch.hpp>
+#include <test_common.hpp>
 #include <render/vulkan_context.hpp>
 #include <render/vulkan_pipeline.hpp>
 #include <render/vulkan_swapchain.hpp>
+#include <render/shader.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vector>
@@ -419,6 +421,266 @@ TEST_CASE("VulkanPipeline: Descriptor stages", "[render][vulkan][pipeline][Vulka
         pipeline.cleanup(context);
     }
 
+    context.shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+// ============================================================================
+// Shader-VulkanPipeline Integration Tests
+// ============================================================================
+
+TEST_CASE("VulkanPipeline: Attach Shader objects", "[render][vulkan][pipeline][shader]") {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
+    REQUIRE(window);
+
+    VulkanContext context;
+    if (!context.initialize(window, false)) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    VulkanPipeline pipeline;
+    Shader vertShader;
+    Shader fragShader;
+
+    SECTION("Attach uninitialized vertex shader fails") {
+        bool result = pipeline.attachVertexShader(context, vertShader);
+        REQUIRE_FALSE(result);
+    }
+
+    SECTION("Attach uninitialized fragment shader fails") {
+        bool result = pipeline.attachFragmentShader(context, fragShader);
+        REQUIRE_FALSE(result);
+    }
+
+    SECTION("Attach valid vertex shader") {
+        if (vertShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+            bool result = pipeline.attachVertexShader(context, vertShader);
+            REQUIRE(result);
+            REQUIRE(pipeline.getVertexShaderModule() != vk::ShaderModule());
+        }
+    }
+
+    SECTION("Attach valid fragment shader") {
+        if (fragShader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment)) {
+            bool result = pipeline.attachFragmentShader(context, fragShader);
+            REQUIRE(result);
+            REQUIRE(pipeline.getFragmentShaderModule() != vk::ShaderModule());
+        }
+    }
+
+    SECTION("Attach vertex shader with wrong stage fails") {
+        if (vertShader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment)) {
+            bool result = pipeline.attachVertexShader(context, vertShader);
+            REQUIRE_FALSE(result);
+        }
+    }
+
+    SECTION("Attach fragment shader with wrong stage fails") {
+        if (fragShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+            bool result = pipeline.attachFragmentShader(context, fragShader);
+            REQUIRE_FALSE(result);
+        }
+    }
+
+    // Cleanup
+    if (vertShader.isInitialized()) vertShader.cleanup(context);
+    if (fragShader.isInitialized()) fragShader.cleanup(context);
+    context.shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+TEST_CASE("VulkanPipeline: Create pipeline with Shader objects", "[render][vulkan][pipeline][shader]") {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
+    REQUIRE(window);
+
+    VulkanContext context;
+    if (!context.initialize(window, false)) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    // Create swapchain for render pass
+    VulkanSwapchain swapchain;
+    vk::Extent2D extent(800, 600);
+    if (!swapchain.create(context, extent)) {
+        context.shutdown();
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    VulkanPipeline pipeline;
+    Shader vertShader;
+    Shader fragShader;
+
+    SECTION("Create graphics pipeline with attached shaders") {
+        if (vertShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex) &&
+            fragShader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment)) {
+
+            REQUIRE(pipeline.attachVertexShader(context, vertShader));
+            REQUIRE(pipeline.attachFragmentShader(context, fragShader));
+            REQUIRE(pipeline.createPipelineLayout(context));
+
+            PipelineConfig config;
+            config.renderPass = swapchain.getRenderPass();
+            config.extent = extent;
+
+            bool result = pipeline.createGraphicsPipeline(context, config);
+            // Should succeed with real shaders
+            if (result) {
+                REQUIRE(pipeline.getPipeline() != vk::Pipeline());
+            }
+        }
+    }
+
+    // Cleanup
+    pipeline.cleanup(context);
+    if (vertShader.isInitialized()) vertShader.cleanup(context);
+    if (fragShader.isInitialized()) fragShader.cleanup(context);
+    swapchain.cleanup(context);
+    context.shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+TEST_CASE("VulkanPipeline: attachShader auto-detects stage", "[render][vulkan][pipeline][shader]") {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
+    REQUIRE(window);
+
+    VulkanContext context;
+    if (!context.initialize(window, false)) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    VulkanPipeline pipeline;
+    Shader vertShader;
+    Shader fragShader;
+
+    SECTION("attachShader correctly attaches vertex shader") {
+        if (vertShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+            bool result = pipeline.attachShader(context, vertShader);
+            REQUIRE(result);
+            REQUIRE(pipeline.getVertexShaderModule() != vk::ShaderModule());
+        }
+    }
+
+    SECTION("attachShader correctly attaches fragment shader") {
+        if (fragShader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment)) {
+            bool result = pipeline.attachShader(context, fragShader);
+            REQUIRE(result);
+            REQUIRE(pipeline.getFragmentShaderModule() != vk::ShaderModule());
+        }
+    }
+
+    // Cleanup
+    if (vertShader.isInitialized()) vertShader.cleanup(context);
+    if (fragShader.isInitialized()) fragShader.cleanup(context);
+    context.shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+TEST_CASE("VulkanPipeline: Move semantics with Shader objects", "[render][vulkan][pipeline][shader]") {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
+    REQUIRE(window);
+
+    VulkanContext context;
+    if (!context.initialize(window, false)) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    Shader vertShader;
+    if (!vertShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+        context.shutdown();
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    SECTION("Move construction transfers shader references") {
+        VulkanPipeline pipeline1;
+        pipeline1.attachVertexShader(context, vertShader);
+
+        VulkanPipeline pipeline2(std::move(pipeline1));
+
+        // pipeline2 should have the shader reference
+        REQUIRE(pipeline2.getVertexShaderModule() != vk::ShaderModule());
+        // pipeline1 should be empty
+        REQUIRE(pipeline1.getVertexShaderModule() == vk::ShaderModule());
+    }
+
+    SECTION("Move assignment transfers shader references") {
+        VulkanPipeline pipeline1;
+        VulkanPipeline pipeline2;
+        pipeline1.attachVertexShader(context, vertShader);
+
+        pipeline2 = std::move(pipeline1);
+
+        REQUIRE(pipeline2.getVertexShaderModule() != vk::ShaderModule());
+        REQUIRE(pipeline1.getVertexShaderModule() == vk::ShaderModule());
+    }
+
+    // Cleanup
+    if (vertShader.isInitialized()) vertShader.cleanup(context);
+    context.shutdown();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+TEST_CASE("VulkanPipeline: Mixed Shader objects and legacy methods", "[render][vulkan][pipeline][shader]") {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Test", nullptr, nullptr);
+    REQUIRE(window);
+
+    VulkanContext context;
+    if (!context.initialize(window, false)) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return;
+    }
+
+    VulkanPipeline pipeline;
+    Shader vertShader;
+
+    // Minimal SPIR-V for legacy method
+    std::vector<uint32_t> spirvCode = {
+        0x07230203, 0x00010100, 0x00000001, 0x00000008, 0x00000000
+    };
+
+    SECTION("Can't use both Shader objects and legacy methods for same stage") {
+        if (vertShader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+            REQUIRE(pipeline.attachVertexShader(context, vertShader));
+            // Legacy method should fail because stage is already taken
+            bool result = pipeline.createVertexShaderModule(context, spirvCode);
+            REQUIRE_FALSE(result);
+        }
+    }
+
+    // Cleanup
+    if (vertShader.isInitialized()) vertShader.cleanup(context);
     context.shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();

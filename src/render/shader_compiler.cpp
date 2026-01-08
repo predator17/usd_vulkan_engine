@@ -1,6 +1,6 @@
 #include "shader_compiler.hpp"
 #include "shader.hpp"
-#include "core/logger.hpp"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <filesystem>
 #include <sstream>
@@ -35,14 +35,14 @@ bool ShaderCompiler::findGlslangValidator() {
         std::filesystem::path fsPath(path);
         if (std::filesystem::exists(fsPath)) {
             s_glslangValidatorPath = path;
-            LOG_INFO("ShaderCompiler: Found glslangValidator at: {}", path);
+            SPDLOG_INFO("ShaderCompiler: Found glslangValidator at: {}", path);
             return true;
         }
     }
 
-    LOG_WARN("ShaderCompiler: glslangValidator not found in system PATH");
-    LOG_WARN("ShaderCompiler: Shader runtime compilation will not work");
-    LOG_WARN("ShaderCompiler: Install Vulkan SDK to enable these features");
+    SPDLOG_WARN("ShaderCompiler: glslangValidator not found in system PATH");
+    SPDLOG_WARN("ShaderCompiler: Shader runtime compilation will not work");
+    SPDLOG_WARN("ShaderCompiler: Install Vulkan SDK to enable these features");
     return false;
 }
 
@@ -128,7 +128,7 @@ bool ShaderCompiler::compileAndSave(const std::string& glslPath,
                                      const std::string& spirvPath,
                                      Shader::Stage stage) {
     if (!isCompilerAvailable()) {
-        LOG_ERROR("ShaderCompiler: glslangValidator not found");
+        SPDLOG_ERROR("ShaderCompiler: glslangValidator not found");
         return false;
     }
 
@@ -142,7 +142,7 @@ bool ShaderCompiler::compileAndSave(const std::string& glslPath,
     // Execute compilation
     FILE* pipe = popen(cmd.str().c_str(), "r");
     if (!pipe) {
-        LOG_ERROR("ShaderCompiler: Failed to execute glslangValidator");
+        SPDLOG_ERROR("ShaderCompiler: Failed to execute glslangValidator");
         return false;
     }
 
@@ -155,19 +155,19 @@ bool ShaderCompiler::compileAndSave(const std::string& glslPath,
     int status = pclose(pipe);
 
     if (status != 0) {
-        LOG_ERROR("ShaderCompiler: Compilation failed for: {}", glslPath);
+        SPDLOG_ERROR("ShaderCompiler: Compilation failed for: {}", glslPath);
         if (!output.empty()) {
-            LOG_ERROR("ShaderCompiler: {}", output);
+            SPDLOG_ERROR("ShaderCompiler: {}", output);
         }
         return false;
     }
 
     // Log warnings if any
     if (!output.empty()) {
-        LOG_WARN("ShaderCompiler: {}", output);
+        SPDLOG_WARN("ShaderCompiler: {}", output);
     }
 
-    LOG_INFO("ShaderCompiler: Compiled {} to {}", glslPath, spirvPath);
+    SPDLOG_INFO("ShaderCompiler: Compiled {} to {}", glslPath, spirvPath);
     return true;
 }
 

@@ -14,6 +14,10 @@ public:
     VulkanSwapchain(const VulkanSwapchain&) = delete;
     VulkanSwapchain& operator=(const VulkanSwapchain&) = delete;
 
+    // Movable
+    VulkanSwapchain(VulkanSwapchain&& other) noexcept;
+    VulkanSwapchain& operator=(VulkanSwapchain&& other) noexcept;
+
     bool create(VulkanContext& context, vk::Extent2D extent);
     void cleanup(VulkanContext& context);
 

@@ -2,8 +2,7 @@
 
 #include <string>
 #include <vector>
-
-class Shader;
+#include "shader.hpp"
 
 /**
  * @brief Shader compilation utilities for GLSL to SPIR-V conversion

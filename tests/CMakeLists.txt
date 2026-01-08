@@ -1,19 +1,17 @@
 # Test CMakeLists.txt for USD Vulkan Engine
 # Following TDD methodology with Catch2
 
-# Find Catch2 (first try find_package, then add_subdirectory)
-find_package(Catch2 2.13.10 QUIET)
+# Shader test directory (relative to build directory)
+set(TEST_SHADER_DIR "${CMAKE_BINARY_DIR}/shaders")
+message(STATUS "Test shader directory: ${TEST_SHADER_DIR}")
 
-if(NOT Catch2_FOUND)
-    # Use FetchContent to download Catch2 if not found
-    include(FetchContent)
-    FetchContent_Declare(
-        catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v2.13.10
-    )
-    FetchContent_MakeAvailable(catch2)
+# Use local Catch2 from external/ (added by external/CMakeLists.txt)
+if(TARGET catch2)
+    message(STATUS "Using catch2 target from external/")
+    add_library(Catch2::Catch2 ALIAS catch2)
     set(Catch2_FOUND TRUE)
+else()
+    message(FATAL_ERROR "Catch2 target not found. Check external/CMakeLists.txt")
 endif()
 
 message(STATUS "Catch2 found: ${Catch2_FOUND}")
@@ -43,7 +41,12 @@ function(add_usd_ve_test test_name)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests
     )
-    add_test(NAME ${test_name} COMMAND ${test_name})
+    target_compile_definitions(${test_name} PRIVATE
+        TEST_SHADER_DIR="${TEST_SHADER_DIR}"
+    )
+    # Set working directory to build root for shader path resolution
+    add_test(NAME ${test_name} COMMAND ${test_name}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     # Enable folder grouping in IDEs
     set_target_properties(${test_name} PROPERTIES FOLDER "Tests")
 endfunction()
@@ -62,7 +65,11 @@ function(add_usd_ve_usd_test test_name)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests
     )
-    add_test(NAME ${test_name} COMMAND ${test_name})
+    target_compile_definitions(${test_name} PRIVATE
+        TEST_SHADER_DIR="${TEST_SHADER_DIR}"
+    )
+    add_test(NAME ${test_name} COMMAND ${test_name}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     set_target_properties(${test_name} PROPERTIES FOLDER "Tests")
 endfunction()
 
@@ -84,7 +91,12 @@ function(add_usd_ve_render_test test_name)
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests
     )
-    add_test(NAME ${test_name} COMMAND ${test_name})
+    target_compile_definitions(${test_name} PRIVATE
+        TEST_SHADER_DIR="${TEST_SHADER_DIR}"
+    )
+    # Set working directory to build root for shader path resolution
+    add_test(NAME ${test_name} COMMAND ${test_name}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     set_target_properties(${test_name} PROPERTIES FOLDER "Tests")
 endfunction()
 
@@ -108,7 +120,7 @@ if(CORE_TEST_SOURCES)
     add_usd_ve_test(usd_ve_core_tests ${TEST_MAIN} ${CORE_TEST_SOURCES})
 endif()
 
-if(USD_TEST_SOURCES AND EXISTS "${USD_LIB_DIR}")
+if(USD_TEST_SOURCES AND USD_FOUND)
     add_usd_ve_usd_test(usd_ve_usd_tests ${TEST_MAIN} ${USD_TEST_SOURCES})
 elseif(USD_TEST_SOURCES)
     message(STATUS "USD tests skipped (USD not found)")

@@ -19,10 +19,14 @@ if(EXISTS "${USD_LIB_DIR}")
     target_link_libraries(usd_ve_usd PUBLIC
         ${USD_LIB_DIR}/libusd.so
         ${USD_LIB_DIR}/libusdGeom.so
-        ${USD_LIB_DIR}/libusdUtils.so
-        ${USD_LIB_DIR}/libarch.so
-        ${USD_LIB_DIR}/libjsone.so
-        ${USD_LIB_DIR}/libpxr_base.so
+        ${USD_LIB_DIR}/libusd_sdf.so
+        ${USD_LIB_DIR}/libusd_pcp.so
+        ${USD_LIB_DIR}/libusd_tf.so
+        ${USD_LIB_DIR}/libusd_gf.so
+        ${USD_LIB_DIR}/libusd_vt.so
+        ${USD_LIB_DIR}/libusd_arch.so
+        ${USD_LIB_DIR}/libusd_js.so
+        ${USD_LIB_DIR}/libusd_kind.so
         pthread
     )
 endif()

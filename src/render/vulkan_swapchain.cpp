@@ -5,6 +5,42 @@ VulkanSwapchain::~VulkanSwapchain() {
     // Cleanup handled by explicit cleanup()
 }
 
+VulkanSwapchain::VulkanSwapchain(VulkanSwapchain&& other) noexcept
+    : m_swapchain(std::exchange(other.m_swapchain, vk::SwapchainKHR()))
+    , m_images(std::move(other.m_images))
+    , m_imageViews(std::move(other.m_imageViews))
+    , m_framebuffers(std::move(other.m_framebuffers))
+    , m_renderPass(std::exchange(other.m_renderPass, vk::RenderPass()))
+    , m_depthImage(std::exchange(other.m_depthImage, vk::Image()))
+    , m_depthMemory(std::exchange(other.m_depthMemory, vk::DeviceMemory()))
+    , m_depthImageView(std::exchange(other.m_depthImageView, vk::ImageView()))
+    , m_extent(other.m_extent)
+    , m_imageFormat(other.m_imageFormat)
+    , m_depthFormat(other.m_depthFormat)
+    , m_initialized(other.m_initialized)
+{
+    other.m_initialized = false;
+}
+
+VulkanSwapchain& VulkanSwapchain::operator=(VulkanSwapchain&& other) noexcept {
+    if (this != &other) {
+        m_swapchain = std::exchange(other.m_swapchain, vk::SwapchainKHR());
+        m_images = std::move(other.m_images);
+        m_imageViews = std::move(other.m_imageViews);
+        m_framebuffers = std::move(other.m_framebuffers);
+        m_renderPass = std::exchange(other.m_renderPass, vk::RenderPass());
+        m_depthImage = std::exchange(other.m_depthImage, vk::Image());
+        m_depthMemory = std::exchange(other.m_depthMemory, vk::DeviceMemory());
+        m_depthImageView = std::exchange(other.m_depthImageView, vk::ImageView());
+        m_extent = other.m_extent;
+        m_imageFormat = other.m_imageFormat;
+        m_depthFormat = other.m_depthFormat;
+        m_initialized = other.m_initialized;
+        other.m_initialized = false;
+    }
+    return *this;
+}
+
 bool VulkanSwapchain::create(VulkanContext& context, vk::Extent2D extent) {
     if (m_initialized) {
         return false;

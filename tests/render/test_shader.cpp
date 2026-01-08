@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <test_common.hpp>
 #include <render/vulkan_context.hpp>
 #include <render/shader.hpp>
 #include <render/shader_compiler.hpp>
@@ -23,10 +24,8 @@ public:
     }
 
 private:
-    static bool s_initialized;
+    static inline bool s_initialized = false;
 };
-
-bool GLFWHelper::s_initialized = false;
 
 TEST_CASE("Shader: Default construction", "[render][vulkan][shader]") {
     Shader shader;
@@ -83,7 +82,7 @@ TEST_CASE("Shader: Load from SPIR-V", "[render][vulkan][shader][VulkanGPUTests]"
 
     SECTION("Load valid vertex shader SPIR-V") {
         Shader shader;
-        std::string shaderPath = "src/shaders/basic.vert.spv";
+        std::string shaderPath = SHADER_PATH("basic.vert.spv");
 
         if (shader.loadFromSPIRV(context, shaderPath, Shader::Stage::Vertex)) {
             REQUIRE(shader.isInitialized());
@@ -100,7 +99,7 @@ TEST_CASE("Shader: Load from SPIR-V", "[render][vulkan][shader][VulkanGPUTests]"
 
     SECTION("Load valid fragment shader SPIR-V") {
         Shader shader;
-        std::string shaderPath = "src/shaders/basic.frag.spv";
+        std::string shaderPath = SHADER_PATH("basic.frag.spv");
 
         if (shader.loadFromSPIRV(context, shaderPath, Shader::Stage::Fragment)) {
             REQUIRE(shader.isInitialized());
@@ -136,7 +135,7 @@ TEST_CASE("Shader: Load from GLSL", "[render][vulkan][shader][VulkanGPUTests]") 
 
     SECTION("Load vertex shader from GLSL with SPIR-V") {
         Shader shader;
-        std::string shaderPath = "src/shaders/basic.vert";
+        std::string shaderPath = SHADER_PATH("basic.vert");
 
         if (shader.loadFromGLSL(context, shaderPath, Shader::Stage::Vertex)) {
             REQUIRE(shader.isInitialized());
@@ -149,7 +148,7 @@ TEST_CASE("Shader: Load from GLSL", "[render][vulkan][shader][VulkanGPUTests]") 
 
     SECTION("Load fragment shader from GLSL with SPIR-V") {
         Shader shader;
-        std::string shaderPath = "src/shaders/basic.frag";
+        std::string shaderPath = SHADER_PATH("basic.frag");
 
         if (shader.loadFromGLSL(context, shaderPath, Shader::Stage::Fragment)) {
             REQUIRE(shader.isInitialized());
@@ -179,8 +178,8 @@ TEST_CASE("Shader: Double creation protection", "[render][vulkan][shader][Vulkan
 
     SECTION("Second loadFromSPIRV returns false") {
         Shader shader;
-        if (shader.loadFromSPIRV(context, "src/shaders/basic.vert.spv", Shader::Stage::Vertex)) {
-            bool result = shader.loadFromSPIRV(context, "src/shaders/basic.frag.spv", Shader::Stage::Fragment);
+        if (shader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
+            bool result = shader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment);
             REQUIRE_FALSE(result);
             shader.cleanup(context);
         }
@@ -205,12 +204,12 @@ TEST_CASE("Shader: Cleanup and recreate", "[render][vulkan][shader][VulkanGPUTes
 
     SECTION("Can cleanup and reload") {
         Shader shader;
-        if (shader.loadFromSPIRV(context, "src/shaders/basic.vert.spv", Shader::Stage::Vertex)) {
+        if (shader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
             shader.cleanup(context);
             REQUIRE_FALSE(shader.isInitialized());
 
             // Should be able to reload
-            shader.loadFromSPIRV(context, "src/shaders/basic.frag.spv", Shader::Stage::Fragment);
+            shader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment);
             REQUIRE(shader.isInitialized());
 
             shader.cleanup(context);
@@ -236,7 +235,7 @@ TEST_CASE("Shader: Move construction", "[render][vulkan][shader][VulkanGPUTests]
 
     SECTION("Move transfers ownership") {
         Shader shader1;
-        if (shader1.loadFromSPIRV(context, "src/shaders/basic.vert.spv", Shader::Stage::Vertex)) {
+        if (shader1.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
             vk::ShaderModule module = shader1.getModule();
             std::string path = shader1.getPath();
 
@@ -276,7 +275,7 @@ TEST_CASE("Shader: Move assignment", "[render][vulkan][shader][VulkanGPUTests]")
         Shader shader1;
         Shader shader2;
 
-        if (shader1.loadFromSPIRV(context, "src/shaders/basic.vert.spv", Shader::Stage::Vertex)) {
+        if (shader1.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
             vk::ShaderModule module = shader1.getModule();
 
             shader2 = std::move(shader1);
@@ -315,7 +314,7 @@ TEST_CASE("Shader: All shader stages", "[render][vulkan][shader][VulkanGPUTests]
 
     SECTION("Vertex stage") {
         Shader shader;
-        if (shader.loadFromSPIRV(context, "src/shaders/basic.vert.spv", Shader::Stage::Vertex)) {
+        if (shader.loadFromSPIRV(context, SHADER_PATH("basic.vert.spv"), Shader::Stage::Vertex)) {
             REQUIRE(shader.getVkStage() == vk::ShaderStageFlagBits::eVertex);
             shader.cleanup(context);
         }
@@ -323,7 +322,7 @@ TEST_CASE("Shader: All shader stages", "[render][vulkan][shader][VulkanGPUTests]
 
     SECTION("Fragment stage") {
         Shader shader;
-        if (shader.loadFromSPIRV(context, "src/shaders/basic.frag.spv", Shader::Stage::Fragment)) {
+        if (shader.loadFromSPIRV(context, SHADER_PATH("basic.frag.spv"), Shader::Stage::Fragment)) {
             REQUIRE(shader.getVkStage() == vk::ShaderStageFlagBits::eFragment);
             shader.cleanup(context);
         }

@@ -1,6 +1,6 @@
 #include "shader.hpp"
 #include "vulkan_context.hpp"
-#include "core/logger.hpp"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <filesystem>
 
@@ -38,7 +38,7 @@ Shader& Shader::operator=(Shader&& other) noexcept {
 
 bool Shader::loadFromSPIRV(VulkanContext& context, const std::string& path, Stage stage) {
     if (m_initialized) {
-        LOG_ERROR("Shader: Already initialized");
+        SPDLOG_ERROR("Shader: Already initialized");
         return false;
     }
 
@@ -57,13 +57,13 @@ bool Shader::loadFromSPIRV(VulkanContext& context, const std::string& path, Stag
 
     m_initialized = true;
     updateLastWriteTime();
-    LOG_INFO("Shader: Loaded SPIR-V shader: {} ({})", path, getStageName(stage));
+    SPDLOG_INFO("Shader: Loaded SPIR-V shader: {} ({})", path, getStageName(stage));
     return true;
 }
 
 bool Shader::loadFromGLSL(VulkanContext& context, const std::string& path, Stage stage) {
     if (m_initialized) {
-        LOG_ERROR("Shader: Already initialized");
+        SPDLOG_ERROR("Shader: Already initialized");
         return false;
     }
 
@@ -72,8 +72,9 @@ bool Shader::loadFromGLSL(VulkanContext& context, const std::string& path, Stage
     m_isGLSL = true;
 
     // Try to find corresponding .spv file
+    // The compiled shader file is named <basename>.<ext>.spv (e.g., basic.vert.spv)
     std::filesystem::path glslPath(path);
-    std::filesystem::path spirvPath = glslPath.parent_path() / (glslPath.stem().string() + ".spv");
+    std::filesystem::path spirvPath = glslPath.parent_path() / (glslPath.filename().string() + ".spv");
 
     // Check if SPIR-V exists
     bool usePrecompiled = std::filesystem::exists(spirvPath);
@@ -81,14 +82,14 @@ bool Shader::loadFromGLSL(VulkanContext& context, const std::string& path, Stage
     std::vector<uint32_t> spirvCode;
 
     if (usePrecompiled) {
-        LOG_INFO("Shader: Using pre-compiled SPIR-V: {}", spirvPath.string());
+        SPDLOG_INFO("Shader: Using pre-compiled SPIR-V: {}", spirvPath.string());
         if (!loadSPIRVFile(spirvPath.string(), spirvCode)) {
-            LOG_ERROR("Shader: Failed to load pre-compiled SPIR-V");
+            SPDLOG_ERROR("Shader: Failed to load pre-compiled SPIR-V");
             return false;
         }
     } else {
-        LOG_ERROR("Shader: SPIR-V file not found: {}", spirvPath.string());
-        LOG_ERROR("Shader: Run: glslangValidator -V {} -o {}", path, spirvPath.string());
+        SPDLOG_ERROR("Shader: SPIR-V file not found: {}", spirvPath.string());
+        SPDLOG_ERROR("Shader: Run: glslangValidator -V {} -o {}", path, spirvPath.string());
         return false;
     }
 
@@ -98,7 +99,7 @@ bool Shader::loadFromGLSL(VulkanContext& context, const std::string& path, Stage
 
     m_initialized = true;
     updateLastWriteTime();
-    LOG_INFO("Shader: Loaded GLSL shader: {} ({})", path, getStageName(stage));
+    SPDLOG_INFO("Shader: Loaded GLSL shader: {} ({})", path, getStageName(stage));
     return true;
 }
 
@@ -114,7 +115,7 @@ bool Shader::checkForReload(VulkanContext& context) {
     }
 
     if (currentTime > m_lastWriteTime) {
-        LOG_INFO("Shader: Detected change in {}, reloading...", m_path);
+        SPDLOG_INFO("Shader: Detected change in {}, reloading...", m_path);
 
         // Save old state
         vk::ShaderModule oldModule = m_shaderModule;
@@ -134,7 +135,7 @@ bool Shader::checkForReload(VulkanContext& context) {
             m_shaderModule = oldModule;
             m_initialized = oldInitialized;
             m_path = oldPath;
-            LOG_ERROR("Shader: Failed to reload shader, keeping previous version");
+            SPDLOG_ERROR("Shader: Failed to reload shader, keeping previous version");
             return false;
         }
     }
@@ -191,13 +192,13 @@ const char* Shader::getStageName(Stage stage) {
 
 bool Shader::createShaderModule(VulkanContext& context, const std::vector<uint32_t>& spirvCode) {
     if (spirvCode.empty()) {
-        LOG_ERROR("Shader: Empty SPIR-V code");
+        SPDLOG_ERROR("Shader: Empty SPIR-V code");
         return false;
     }
 
     // Validate SPIR-V magic number
     if (spirvCode[0] != 0x07230203) {
-        LOG_ERROR("Shader: Invalid SPIR-V magic number: {:#x}", spirvCode[0]);
+        SPDLOG_ERROR("Shader: Invalid SPIR-V magic number: {:#x}", spirvCode[0]);
         return false;
     }
 
@@ -207,7 +208,7 @@ bool Shader::createShaderModule(VulkanContext& context, const std::vector<uint32
 
     vk::Result result = context.getDevice().createShaderModule(&createInfo, nullptr, &m_shaderModule);
     if (result != vk::Result::eSuccess) {
-        LOG_ERROR("Shader: Failed to create shader module: {}", static_cast<int>(result));
+        SPDLOG_ERROR("Shader: Failed to create shader module: {}", static_cast<int>(result));
         return false;
     }
 
@@ -217,7 +218,7 @@ bool Shader::createShaderModule(VulkanContext& context, const std::vector<uint32
 bool Shader::loadSPIRVFile(const std::string& path, std::vector<uint32_t>& outCode) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        LOG_ERROR("Shader: Failed to open file: {}", path);
+        SPDLOG_ERROR("Shader: Failed to open file: {}", path);
         return false;
     }
 
@@ -226,7 +227,7 @@ bool Shader::loadSPIRVFile(const std::string& path, std::vector<uint32_t>& outCo
 
     // SPIR-V is stored as 32-bit words
     if (fileSize % sizeof(uint32_t) != 0) {
-        LOG_ERROR("Shader: Invalid SPIR-V file size: {} (not a multiple of 4)", fileSize);
+        SPDLOG_ERROR("Shader: Invalid SPIR-V file size: {} (not a multiple of 4)", fileSize);
         return false;
     }
 
@@ -235,7 +236,7 @@ bool Shader::loadSPIRVFile(const std::string& path, std::vector<uint32_t>& outCo
     file.read(reinterpret_cast<char*>(outCode.data()), fileSize);
 
     if (!file) {
-        LOG_ERROR("Shader: Failed to read file: {}", path);
+        SPDLOG_ERROR("Shader: Failed to read file: {}", path);
         return false;
     }
 
@@ -246,6 +247,6 @@ void Shader::updateLastWriteTime() {
     std::error_code ec;
     m_lastWriteTime = std::filesystem::last_write_time(m_path, ec);
     if (ec) {
-        LOG_WARN("Shader: Failed to get last write time for: {}", m_path);
+        SPDLOG_WARN("Shader: Failed to get last write time for: {}", m_path);
     }
 }

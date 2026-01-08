@@ -1,4 +1,5 @@
 #include "vulkan_context.hpp"
+#include "vulkan_swapchain.hpp"
 #include "core/logger.hpp"
 #include <GLFW/glfw3.h>
 #include <vector>
@@ -10,8 +11,55 @@ const std::vector<const char*> VulkanContext::s_deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+VulkanContext::VulkanContext() = default;
+
 VulkanContext::~VulkanContext() {
     shutdown();
+}
+
+VulkanContext::VulkanContext(VulkanContext&& other) noexcept
+    : m_instance(std::exchange(other.m_instance, vk::Instance()))
+    , m_physicalDevice(std::exchange(other.m_physicalDevice, vk::PhysicalDevice()))
+    , m_device(std::exchange(other.m_device, vk::Device()))
+    , m_surface(std::exchange(other.m_surface, vk::SurfaceKHR()))
+    , m_graphicsQueue(std::exchange(other.m_graphicsQueue, vk::Queue()))
+    , m_presentQueue(std::exchange(other.m_presentQueue, vk::Queue()))
+    , m_commandPool(std::exchange(other.m_commandPool, vk::CommandPool()))
+    , m_swapchain(std::move(other.m_swapchain))
+    , m_queueFamilyIndices(other.m_queueFamilyIndices)
+    , m_initialized(other.m_initialized)
+    , m_framebufferResized(other.m_framebufferResized)
+    , m_elapsedTime(other.m_elapsedTime)
+{
+    other.m_queueFamilyIndices = VulkanQueueFamilyIndices();
+    other.m_initialized = false;
+    other.m_framebufferResized = false;
+    other.m_elapsedTime = 0.0f;
+}
+
+VulkanContext& VulkanContext::operator=(VulkanContext&& other) noexcept {
+    if (this != &other) {
+        shutdown();
+
+        m_instance = std::exchange(other.m_instance, vk::Instance());
+        m_physicalDevice = std::exchange(other.m_physicalDevice, vk::PhysicalDevice());
+        m_device = std::exchange(other.m_device, vk::Device());
+        m_surface = std::exchange(other.m_surface, vk::SurfaceKHR());
+        m_graphicsQueue = std::exchange(other.m_graphicsQueue, vk::Queue());
+        m_presentQueue = std::exchange(other.m_presentQueue, vk::Queue());
+        m_commandPool = std::exchange(other.m_commandPool, vk::CommandPool());
+        m_swapchain = std::move(other.m_swapchain);
+        m_queueFamilyIndices = other.m_queueFamilyIndices;
+        m_initialized = other.m_initialized;
+        m_framebufferResized = other.m_framebufferResized;
+        m_elapsedTime = other.m_elapsedTime;
+
+        other.m_queueFamilyIndices = VulkanQueueFamilyIndices();
+        other.m_initialized = false;
+        other.m_framebufferResized = false;
+        other.m_elapsedTime = 0.0f;
+    }
+    return *this;
 }
 
 bool VulkanContext::initialize(GLFWwindow* window, bool enableValidationLayers) {
@@ -42,16 +90,37 @@ bool VulkanContext::initialize(GLFWwindow* window, bool enableValidationLayers) 
         return false;
     }
 
+    if (!createCommandPool()) {
+        shutdown();
+        return false;
+    }
+
+    // Get window size for swapchain
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    vk::Extent2D extent{static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+
+    // Create swapchain
+    if (!m_swapchain.create(*this, extent)) {
+        shutdown();
+        return false;
+    }
+
     m_initialized = true;
     return true;
 }
 
 void VulkanContext::shutdown() {
     // Destroy in reverse order of creation
-    // Only destroy what was actually created
-    // Use explicit null checks and reset handles after destruction
-
     if (m_device) {
+        if (m_commandPool) {
+            m_device.destroyCommandPool(m_commandPool);
+            m_commandPool = vk::CommandPool();
+        }
+
+        // Destroy swapchain first
+        m_swapchain.cleanup(*this);
+
         m_device.destroy();
         m_device = vk::Device();
     }
@@ -215,4 +284,27 @@ bool VulkanContext::createLogicalDevice() {
     m_device.getQueue(m_queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
 
     return true;
+}
+
+bool VulkanContext::createCommandPool() {
+    vk::CommandPoolCreateInfo poolInfo{};
+    poolInfo.setQueueFamilyIndex(m_queueFamilyIndices.graphicsFamily.value());
+    poolInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
+
+    vk::Result result = m_device.createCommandPool(&poolInfo, nullptr, &m_commandPool);
+    if (result != vk::Result::eSuccess) {
+        return false;
+    }
+    return true;
+}
+
+uint32_t VulkanContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const {
+    vk::PhysicalDeviceMemoryProperties memProperties = m_physicalDevice.getMemoryProperties();
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+    return UINT32_MAX;
 }

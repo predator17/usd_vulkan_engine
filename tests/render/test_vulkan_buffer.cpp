@@ -23,16 +23,14 @@ public:
 
     static void terminate() {
         if (s_initialized) {
-            
+
             s_initialized = false;
         }
     }
 
 private:
-    static bool s_initialized;
+    static inline bool s_initialized = false;
 };
-
-bool GLFWHelper::s_initialized = false;
 
 TEST_CASE("VulkanBuffer: Default construction", "[render][vulkan][buffer]") {
     VulkanBuffer buffer;
