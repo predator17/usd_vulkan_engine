@@ -38,14 +38,15 @@ make -j$(nproc)
 | 0: Test Infrastructure | ✅ | - | Catch2 integrated, main.cpp added |
 | 1: Core Data Structures | ✅ | 400 | All tests pass (64 test cases) |
 | 2: USD Integration | ✅ | - | Implemented, tests pending USD installation |
-| 3: Vulkan Foundation | ✅ | - | Context, Swapchain implemented |
-| 4: Vulkan Pipeline | ✅ | - | Buffer, Descriptor, Pipeline classes |
+| 3: Vulkan Foundation | ✅ | 202 | Context, Swapchain tests pass (57 test cases) |
+| 4: Vulkan Pipeline | ✅ | - | Buffer, Descriptor, Pipeline classes (included in Phase 3 tests) |
 | 5: Shaders | ❌ | 0 | Not started |
 | 6: Main Renderer | ❌ | 0 | Not started |
 | 7: Scene Integration | ❌ | 0 | Not started |
 | 8: End-to-End | ❌ | 0 | Not started |
 
-**Progress: ~40% Complete**
+**Total: 602 assertions passing in 121 test cases**
+**Progress: ~50% Complete**
 
 ## Core Library
 
@@ -85,8 +86,14 @@ All project code is in the `usd_ve` namespace to avoid conflicts with dependenci
 ## Testing
 
 ```bash
-# Run all core tests
+# Run all tests via CTest
+LD_LIBRARY_PATH=/path/to/USD/install/lib:$LD_LIBRARY_PATH ctest --output-on-failure
+
+# Run core tests
 ./tests/usd_ve_core_tests
+
+# Run Vulkan render tests
+./tests/usd_ve_render_tests
 
 # Run with verbose output
 ./tests/usd_ve_core_tests -s
@@ -94,6 +101,11 @@ All project code is in the `usd_ve` namespace to avoid conflicts with dependenci
 # Run specific test case
 ./tests/usd_ve_core_tests "Color: To hex"
 ```
+
+**Test Coverage:**
+- Core: 400 assertions in 64 test cases
+- Render: 202 assertions in 57 test cases
+- **Total: 602 assertions in 121 test cases**
 
 ## Dependencies
 
