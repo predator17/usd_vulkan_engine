@@ -25,12 +25,7 @@ _deps/
 #==============================================================================
 # OpenUSD (built from source)
 #==============================================================================
-# Ignore downloaded tarballs (too large for GitHub)
-OpenUSD/src/*.tar.gz
-# Ignore extracted source and build artifacts
-OpenUSD/usd-src/
-OpenUSD/build/
-OpenUSD/install/
+OpenUSD/
 
 #==============================================================================
 # Compiled Objects

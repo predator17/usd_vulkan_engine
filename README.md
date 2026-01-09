@@ -37,88 +37,74 @@ A C++20 real-time USD (Universal Scene Description) viewer built with Vulkan ren
 **System Requirements:**
 - C++20 compatible compiler (GCC 11+, Clang 13+, MSVC 2022+)
 - CMake 3.20+
-- glslangValidator (for shader compilation)
 - Git
 - Vulkan-capable GPU with drivers (provides libvulkan.so runtime)
 
-**Install glslangValidator:**
-```bash
-# Ubuntu/Debian:
-sudo apt install glslang-tools
-
-# Fedora:
-sudo dnf install glslang
-
-# Arch:
-sudo pacman -S glslang
-```
-
-> **Note:** Vulkan headers (Vulkan-Headers, Vulkan-Hpp) and GLM are downloaded
-> automatically by CPM.cmake. Only the Vulkan loader from your graphics driver
-> is required at runtime.
+> **Note:** All dependencies including Vulkan headers are downloaded automatically
+> by the setup scripts. No system packages are required except for a C++20 compiler
+> and CMake. The Vulkan loader from your graphics driver is required at runtime.
 
 ### Initial Setup (First Time Only)
 
-**Option 1: Automatic dependency download (Recommended)**
+The setup process consists of two steps:
+
+**Step 1: Download CPM dependencies**
 ```bash
 cd usd_vulkan_engine
 
-# Download CPM.cmake and OpenUSD source
+# Download all CPM.cmake dependencies (Vulkan, GLM, ImGui, GLFW, etc.)
 ./scripts/download_dependencies.sh
-
-# The script will:
-# - Download CPM.cmake to cmake/CPM.cmake
-# - Download USD source to OpenUSD/src/
-# Note: Other dependencies (Vulkan, GLM, ImGui, etc.) are downloaded
-#       automatically by CPM.cmake during cmake configuration.
 ```
 
-**Option 2: Manual setup**
+This downloads to `.cpm-cache/`:
+- CPM.cmake v0.42.0
+- Catch2 v3.12.0
+- GLM 1.0.2
+- Vulkan-Headers v1.4.337
+- Vulkan-Hpp v1.4.337
+- Vulkan-Loader v1.4.337
+- GLFW 3.4
+- Dear ImGui v1.92.2
+- ImGuiFileDialog v0.6.7
+- spdlog v1.16.0
+
+**Step 2: Download and build OpenUSD**
 ```bash
-# Download USD manually
-mkdir -p OpenUSD/src
-cd OpenUSD/src
-wget https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v25.11.tar.gz
-cd ../..
+# Download and build OpenUSD v25.11 (default)
+./scripts/setup_usd.sh
+
+# Or build a specific version:
+./scripts/setup_usd.sh v25.11
 ```
 
-**Build USD** (required after download):
-```bash
-cd OpenUSD
-
-# Extract source
-tar -xzf src/OpenUSD-25.11.tar.gz --strip-components=1 -C usd-src/
-
-# Build in separate directory
-mkdir -p build && cd build
-cmake ../usd-src/ \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DPXR_BUILD_USD_USDA=OFF \
-  -DPXR_BUILD_USD_USDC=ON \
-  -DPXR_ENABLE_PYTHON_SUPPORT=OFF \
-  -DPXR_BUILD_IMAGING=OFF \
-  -DPXR_BUILD_USDVIEW=OFF \
-  -DPXR_BUILD_USDRENDERER=OFF \
-  -DPXR_BUILD_TESTS=OFF \
-  -DPXR_BUILD_EXAMPLES=OFF \
-  -DPXR_BUILD_MATERIALX_ADAPTER_PLUGIN=OFF \
-  -DCMAKE_INSTALL_PREFIX=../install
-make -j$(nproc)
-make install
+This creates a versioned OpenUSD structure:
+```
+OpenUSD/
+├── src/
+│   └── 25.11/          # Extracted source
+├── build/
+│   └── 25.11/          # Build directory
+└── install/
+    └── 25.11/          # Installation directory
+        ├── include/     # Headers
+        ├── lib/         # Libraries
+        └── lib/usd/    # Plugins
 ```
 
-> **Note for WSL2/Linux**: If cmake fails with missing Wayland/X11 dependencies:
-> ```bash
-> sudo dnf install wayland-devel libxkbcommon-devel libX11-devel libXext-devel
-> ```
-> Or use the minimal config above which disables all GUI components (usda=OFF).
+For backward compatibility, symlinks are created:
+- `OpenUSD/install/lib` → `OpenUSD/install/25.11/lib`
+- `OpenUSD/install/include` → `OpenUSD/install/25.11/include`
+
+> **Note:** The build disables all GUI components (usda, usdview, etc.) to avoid
+> Wayland/X11 dependencies on headless systems. Only the core USD libraries are built.
 
 ### Build
 
 ```bash
 cd usd_vulkan_engine
 
-# Configure with CMake (CPM.cmake downloads remaining dependencies)
+# Configure with CMake (uses cached dependencies)
+HTTP_PROXY=http://127.0.0.1:8118 HTTPS_PROXY=http://127.0.0.1:8118 \
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 
 # Build
@@ -127,6 +113,9 @@ cd build && make -j$(nproc)
 # Run the engine
 LD_LIBRARY_PATH=../OpenUSD/install/lib:$LD_LIBRARY_PATH ./src/app/usd_vulkan_engine
 ```
+
+> **Note:** Set `HTTP_PROXY` and `HTTPS_PROXY` as shown if behind a proxy.
+> For WSL2, use port 10808. For native Linux, use port 8118.
 
 ### Build Options
 
@@ -167,7 +156,7 @@ cmake -B build -DUSD_VULKAN_ENGINE_BUILD_TESTS=OFF ..
 
 ## Dependencies
 
-All dependencies are managed automatically by **CPM.cmake** and cached in `.cpm-cache/`:
+All dependencies are managed automatically and cached in `.cpm-cache/`:
 
 | Dependency | Version | Source |
 |------------|---------|--------|
@@ -180,6 +169,7 @@ All dependencies are managed automatically by **CPM.cmake** and cached in `.cpm-
 | GLFW | 3.4 | [github.com/glfw/glfw](https://github.com/glfw/glfw) |
 | Vulkan-Headers | v1.4.337 | [github.com/KhronosGroup/Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) |
 | Vulkan-Hpp | v1.4.337 | [github.com/KhronosGroup/Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) |
+| Vulkan-Loader | v1.4.337 | [github.com/KhronosGroup/Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) |
 | OpenUSD | v25.11 | [github.com/PixarAnimationStudios/OpenUSD](https://github.com/PixarAnimationStudios/OpenUSD) |
 
 ## Sample Files
@@ -194,19 +184,18 @@ The project includes sample USD files in the `data/` directory:
 
 ## Cleanup
 
-### Dependency Cleanup
-
-To remove all downloaded and built dependencies:
+### Remove All Dependencies
 
 ```bash
 # Remove CPM cached dependencies
 rm -rf .cpm-cache/
 
-# Remove USD source and build
+# Remove OpenUSD (source, build, install)
 rm -rf OpenUSD/
 
-# Re-download dependencies
+# Re-download and rebuild everything
 ./scripts/download_dependencies.sh
+./scripts/setup_usd.sh
 ```
 
 ### Build Cleanup
@@ -230,17 +219,22 @@ usd_vulkan_engine/
 │   ├── render/        # Vulkan rendering
 │   ├── scene/         # Scene management
 │   ├── camera/        # Camera system
-│   ├── shaders/       # GLSL source
+│   ├── shaders/       # GLSL source + pre-compiled SPIR-V
 │   ├── ui/            # ImGui UI integration
 │   ├── animation/     # Animation (placeholder)
 │   └── material/      # Material (placeholder)
 ├── tests/             # Test suite
 ├── cmake/             # CMake modules (CPM.cmake, UsdConfig.cmake)
-├── scripts/           # Build and download scripts
-├── OpenUSD/           # USD build directory
-│   ├── src/           # USD source tarball
-│   ├── build/         # USD build directory
-│   └── install/       # USD install directory
+├── scripts/           # Build and setup scripts
+│   ├── download_dependencies.sh   # Download all CPM dependencies
+│   └── setup_usd.sh                # Download and build OpenUSD
+├── OpenUSD/           # USD build directory (versioned)
+│   ├── src/
+│   │   └── 25.11/     # Extracted source
+│   ├── build/
+│   │   └── 25.11/     # Build directory
+│   └── install/
+│       └── 25.11/     # Installation directory
 ├── .cpm-cache/        # CPM dependency cache (gitignored)
 ├── data/              # Sample USD files
 │   └── walk_cycle.usda # Humanoid skeleton with walking animation
