@@ -26,7 +26,8 @@ _deps/
 #==============================================================================
 # OpenUSD (built from source)
 #==============================================================================
-OpenUSD/src/
+# Keep downloaded tarball in src/, ignore extracted source
+OpenUSD/usd-src/
 OpenUSD/build/
 OpenUSD/install/
 

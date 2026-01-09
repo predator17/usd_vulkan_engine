@@ -78,15 +78,19 @@ cd usd_vulkan_engine
 mkdir -p OpenUSD/src
 cd OpenUSD/src
 wget https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v25.11.tar.gz
-cd ../../..
+cd ../..
 ```
 
 **Build USD** (required after download):
 ```bash
 cd OpenUSD
-tar -xzf src/OpenUSD-25.11.tar.gz --strip-components=1 -C build/
-mkdir -p bld && cd bld
-cmake .. \
+
+# Extract source
+tar -xzf src/OpenUSD-25.11.tar.gz --strip-components=1 -C usd-src/
+
+# Build in separate directory
+mkdir -p build && cd build
+cmake ../usd-src/ \
   -DCMAKE_BUILD_TYPE=Release \
   -DPXR_BUILD_USD_USDA=OFF \
   -DPXR_BUILD_USD_USDC=ON \
