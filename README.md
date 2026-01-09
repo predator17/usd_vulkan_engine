@@ -192,23 +192,14 @@ rm -rf OpenUSD/
 ./scripts/download_dependencies.sh
 ```
 
-### Shell Script
+### Build Cleanup
 
 ```bash
-./cleanup.sh tidy       # Light cleanup: remove CMakeFiles from source, logs, temps
-./cleanup.sh sweep      # Aggressive cleanup: all artifacts and intermediates
-./cleanup.sh distclean  # Remove everything including build directory
-./cleanup.sh help       # Show all options
-```
-
-### CMake Targets
-
-```bash
-make project-clean   # Remove build artifacts, keep build dir
+# From build directory:
+make help-cleanup    # Show all cleanup options
 make tidy            # Remove intermediate files, keep binaries
-make sweep           # Aggressive cleanup of all artifacts
+make project-clean   # Remove build artifacts, keep build dir
 make distclean       # Remove entire build directory
-make help-cleanup    # Show cleanup help
 ```
 
 ## Project Structure
