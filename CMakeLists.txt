@@ -61,14 +61,16 @@ if(glm_ADDED)
 endif()
 
 #==============================================================================
-# Vulkan Setup (must be before ImGui which links against it)
+# Vulkan Setup (headers only, no system Vulkan required)
 #==============================================================================
 
 # Vulkan-Headers v1.4.337 - Vulkan C API headers (via CPM)
+# Note: DOWNLOAD_ONLY prevents running Vulkan-Hpp's CMake which tries to find system Vulkan
 CPMAddPackage(
     NAME vulkan-headers
     GITHUB_REPOSITORY KhronosGroup/Vulkan-Headers
     VERSION 1.4.337
+    OPTIONS "BUILD_TESTS OFF"
 )
 
 # Vulkan-Hpp v1.4.337 - Vulkan C++ bindings (via CPM)
@@ -76,42 +78,37 @@ CPMAddPackage(
     NAME vulkan-hpp
     GITHUB_REPOSITORY KhronosGroup/Vulkan-Hpp
     VERSION 1.4.337
+    DOWNLOAD_ONLY YES  # Don't run Vulkan-Hpp's CMake (it tries to find system Vulkan)
 )
 
-# Create Vulkan imported target from CPM dependencies
-# Note: FindVulkan.cmake may be called by dependencies (like GLFW) and creates Vulkan targets
-
-# First, try to find Vulkan to populate targets if not already done
-find_package(Vulkan QUIET)
-
-if(TARGET Vulkan::Vulkan)
-    message(STATUS "Vulkan::Vulkan already exists (using FindVulkan.cmake)")
-elseif(TARGET Vulkan::Headers)
-    # Vulkan::Headers exists but Vulkan::Vulkan doesn't
-    # Check if Vulkan::Headers is an IMPORTED target (not ALIAS) before creating alias
-    get_target_property(_vulkan_imported Vulkan::Headers IMPORTED)
-    if(_vulkan_imported)
-        get_target_property(_vulkan_alias_target Vulkan::Headers ALIASED_TARGET)
-        if(NOT _vulkan_alias_target)
-            # Vulkan::Headers is IMPORTED and not itself an ALIAS, safe to create alias
-            add_library(Vulkan::Vulkan ALIAS Vulkan::Headers)
-            message(STATUS "Created Vulkan::Vulkan alias to Vulkan::Headers")
-        else()
-            message(WARNING "Vulkan::Headers is an ALIAS to ${_vulkan_alias_target}, cannot create Vulkan::Vulkan")
-        endif()
-    endif()
-elseif(vulkan-headers_ADDED AND vulkan-hpp_ADDED)
-    # No Vulkan targets found, create from CPM sources
-    add_library(Vulkan::Headers INTERFACE IMPORTED GLOBAL)
-    target_include_directories(Vulkan::Headers INTERFACE
+# Create Vulkan::Headers and Vulkan::Vulkan targets from downloaded CPM sources
+# This is a header-only interface - no linking to system Vulkan libraries required
+if(vulkan-headers_ADDED)
+    add_library(Vulkan_Headers INTERFACE IMPORTED GLOBAL)
+    target_include_directories(Vulkan_Headers INTERFACE
         ${vulkan-headers_SOURCE_DIR}/include
-        ${vulkan-hpp_SOURCE_DIR}
     )
-    add_library(Vulkan::Vulkan ALIAS Vulkan::Headers)
+
+    # Add Vulkan-Hpp to include path if downloaded
+    if(vulkan-hpp_ADDED)
+        target_include_directories(Vulkan_Headers INTERFACE
+            ${vulkan-hpp_SOURCE_DIR}
+        )
+    endif()
+
+    # Create Vulkan::Vulkan as an alias to our header-only interface
+    add_library(Vulkan::Vulkan ALIAS Vulkan_Headers)
+    # Also create Vulkan::Headers as an alias for compatibility
+    add_library(Vulkan::Headers ALIAS Vulkan_Headers)
+
     message(STATUS "Vulkan v${vulkan-headers_VERSION} (headers only) via CPM")
-    message(STATUS "  Note: Vulkan loader (libvulkan.so/vulkan-1.dll) must be provided by graphics driver")
+    message(STATUS "  Vulkan-Headers: ${vulkan-headers_SOURCE_DIR}/include")
+    if(vulkan-hpp_ADDED)
+        message(STATUS "  Vulkan-Hpp: ${vulkan-hpp_SOURCE_DIR}")
+    endif()
+    message(STATUS "  Note: Vulkan loader (libvulkan.so) must be provided by graphics driver at runtime")
 else()
-    message(FATAL_ERROR "Vulkan headers not found via CPM or FindVulkan. Please run: ./scripts/download_dependencies.sh")
+    message(FATAL_ERROR "Vulkan headers not found via CPM. Please run: ./scripts/download_dependencies.sh")
 endif()
 
 #==============================================================================
