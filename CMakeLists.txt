@@ -81,7 +81,7 @@ CPMAddPackage(
     DOWNLOAD_ONLY YES  # Don't run Vulkan-Hpp's CMake (it tries to find system Vulkan)
 )
 
-# Create Vulkan::Headers and Vulkan::Vulkan targets from downloaded CPM sources
+# Create Vulkan::Vulkan target from downloaded CPM sources
 # This is a header-only interface - no linking to system Vulkan libraries required
 if(vulkan-headers_ADDED)
     add_library(Vulkan_Headers INTERFACE IMPORTED GLOBAL)
@@ -98,15 +98,16 @@ if(vulkan-headers_ADDED)
 
     # Create Vulkan::Vulkan as an alias to our header-only interface
     add_library(Vulkan::Vulkan ALIAS Vulkan_Headers)
-    # Also create Vulkan::Headers as an alias for compatibility
-    add_library(Vulkan::Headers ALIAS Vulkan_Headers)
+    # Create Vulkan::Headers alias only if it doesn't already exist
+    if(NOT TARGET Vulkan::Headers)
+        add_library(Vulkan::Headers ALIAS Vulkan_Headers)
+    endif()
 
     message(STATUS "Vulkan v${vulkan-headers_VERSION} (headers only) via CPM")
     message(STATUS "  Vulkan-Headers: ${vulkan-headers_SOURCE_DIR}/include")
     if(vulkan-hpp_ADDED)
         message(STATUS "  Vulkan-Hpp: ${vulkan-hpp_SOURCE_DIR}")
     endif()
-    message(STATUS "  Note: Vulkan loader (libvulkan.so) must be provided by graphics driver at runtime")
 else()
     message(FATAL_ERROR "Vulkan headers not found via CPM. Please run: ./scripts/download_dependencies.sh")
 endif()
@@ -200,14 +201,22 @@ find_program(GLSLANG_VALIDATOR glslangValidator
     PATHS
         "/usr/bin"
         "/usr/local/bin"
+        "/usr/lib64/glslang"
+        "/usr/lib/glslang"
         "$ENV{VULKAN_SDK}/Bin"
         "/opt/VulkanSDK"
-        "/usr/lib/x86_64-linux-gnu/glslang"
-        "/usr/bin/glslang"
+        "$ENV{VULKAN_SDK}/x86_64/bin"
 )
 
 if(NOT GLSLANG_VALIDATOR)
-    message(WARNING "glslangValidator not found - shaders must be pre-compiled manually")
+    message(WARNING "===============================================================================")
+    message(WARNING "glslangValidator not found!")
+    message(WARNING "Shaders will not be compiled automatically.")
+    message(WARNING "Install with: sudo dnf install glslang")
+    message(WARNING "Or set VULKAN_SDK environment variable")
+    message(WARNING "===============================================================================")
+else()
+    message(STATUS "Found glslangValidator: ${GLSLANG_VALIDATOR}")
 endif()
 
 #==============================================================================
