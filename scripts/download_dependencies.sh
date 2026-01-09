@@ -3,10 +3,18 @@
 # USD Vulkan Engine - Dependencies Download Script
 #==============================================================================
 #
-# This script downloads CPM.cmake and OpenUSD source.
+# This script downloads ALL dependencies including:
+#   - CPM.cmake (package manager)
+#   - OpenUSD source (built separately)
+#   - Vulkan-Components (Headers, Hpp, Loader)
+#   - GLM (math library)
+#   - GLFW (windowing)
+#   - Dear ImGui (UI)
+#   - ImGuiFileDialog (file dialog)
+#   - spdlog (logging)
+#   - Catch2 (testing)
 #
-# All other dependencies (Vulkan, GLM, ImGui, etc.) are downloaded
-# automatically by CPM.cmake during cmake configuration.
+# All packages are downloaded to .cpm-cache/ for use by CPM.cmake.
 #
 # Usage:
 #   ./scripts/download_dependencies.sh
@@ -31,6 +39,7 @@ set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+CPM_CACHE_DIR="$PROJECT_ROOT/.cpm-cache"
 
 # Detect WSL2
 # /proc/version contains "microsoft" in WSL2 environments
@@ -56,7 +65,7 @@ else
 fi
 
 # Download timeout (seconds)
-DOWNLOAD_TIMEOUT=300
+DOWNLOAD_TIMEOUT=600
 
 # Retry settings
 MAX_RETRIES=3
@@ -89,7 +98,48 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Download with retry
+# Clone Git repository
+clone_repo() {
+    local repo_url="$1"
+    local tag="$2"
+    local dest_dir="$3"
+    local description="$4"
+
+    log_info "Cloning $description..."
+
+    if [ -d "$dest_dir" ] && [ -f "$dest_dir/.git/config" ]; then
+        log_info "  Already exists, skipping..."
+        return 0
+    fi
+
+    # Create parent directory
+    mkdir -p "$(dirname "$dest_dir")"
+
+    local attempt=1
+    while [ $attempt -le $MAX_RETRIES ]; do
+        if GIT_TERMINAL_PROMPT=0 git clone --depth 1 --branch "$tag" --single-branch \
+                -c http.proxy="$HTTP_PROXY" \
+                -c https.proxy="$HTTPS_PROXY" \
+                "$repo_url" "$dest_dir" 2>/dev/null; then
+            log_success "Cloned: $description"
+            return 0
+        else
+            # Clean up failed clone attempt
+            rm -rf "$dest_dir"
+            log_warning "Attempt $attempt/$MAX_RETRIES failed for $description"
+            if [ $attempt -lt $MAX_RETRIES ]; then
+                log_info "Retrying in ${RETRY_DELAY}s..."
+                sleep $RETRY_DELAY
+            fi
+            ((attempt++))
+        fi
+    done
+
+    log_error "Failed to clone: $description after $MAX_RETRIES attempts"
+    return 1
+}
+
+# Download file (for tarballs)
 download_file() {
     local url="$1"
     local output="$2"
@@ -97,7 +147,6 @@ download_file() {
 
     log_info "Downloading $description..."
     log_info "  URL: $url"
-    log_info "  To: $output"
 
     local attempt=1
     while [ $attempt -le $MAX_RETRIES ]; do
@@ -127,26 +176,6 @@ download_file() {
     return 1
 }
 
-# Verify tar.gz archive
-verify_archive() {
-    local file="$1"
-    local description="$2"
-
-    if [ ! -f "$file" ]; then
-        log_error "File not found: $file"
-        return 1
-    fi
-
-    # Try to list archive contents
-    if tar -tzf "$file" > /dev/null 2>&1; then
-        log_success "Archive verified: $description"
-        return 0
-    else
-        log_error "Archive verification failed: $description"
-        return 1
-    fi
-}
-
 #==============================================================================
 # Main
 #==============================================================================
@@ -163,6 +192,7 @@ main() {
         log_info "Proxy: $HTTP_PROXY (user-specified)"
     fi
     log_info "Project Root: $PROJECT_ROOT"
+    log_info "CPM Cache: $CPM_CACHE_DIR"
     echo ""
 
     # Test proxy connection
@@ -180,14 +210,19 @@ main() {
     mkdir -p "$PROJECT_ROOT/OpenUSD/src"
     mkdir -p "$PROJECT_ROOT/OpenUSD/build"
     mkdir -p "$PROJECT_ROOT/OpenUSD/install"
+    mkdir -p "$CPM_CACHE_DIR"
     log_success "Directories created"
     echo ""
+
+    local TOTAL_STEPS=11
+    local CURRENT_STEP=0
 
     #==========================================================================
     # Step 1: Download CPM.cmake
     #==========================================================================
+    ((CURRENT_STEP++))
     log_info "=========================================="
-    log_info "Step 1: Downloading CPM.cmake"
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading CPM.cmake"
     log_info "=========================================="
     echo ""
 
@@ -202,10 +237,146 @@ main() {
     echo ""
 
     #==========================================================================
-    # Step 2: Download OpenUSD
+    # Step 2: Download Catch2
     #==========================================================================
+    ((CURRENT_STEP++))
     log_info "=========================================="
-    log_info "Step 2: Downloading OpenUSD v25.11"
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading Catch2"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/catchorg/Catch2.git" \
+               "v3.12.0" \
+               "$CPM_CACHE_DIR/catch2/catch2" \
+               "Catch2 v3.12.0"
+    echo ""
+
+    #==========================================================================
+    # Step 3: Download GLM
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading GLM"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/g-truc/glm.git" \
+               "1.0.2" \
+               "$CPM_CACHE_DIR/glm/glm" \
+               "GLM 1.0.2"
+    echo ""
+
+    #==========================================================================
+    # Step 4: Download Vulkan-Headers
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading Vulkan-Headers"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/KhronosGroup/Vulkan-Headers.git" \
+               "v1.4.337" \
+               "$CPM_CACHE_DIR/vulkan-headers/vulkan-headers" \
+               "Vulkan-Headers v1.4.337"
+    echo ""
+
+    #==========================================================================
+    # Step 5: Download Vulkan-Hpp
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading Vulkan-Hpp"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/KhronosGroup/Vulkan-Hpp.git" \
+               "v1.4.337" \
+               "$CPM_CACHE_DIR/vulkan-hpp/vulkan-hpp" \
+               "Vulkan-Hpp v1.4.337"
+    echo ""
+
+    #==========================================================================
+    # Step 6: Download Vulkan-Loader
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading Vulkan-Loader"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/KhronosGroup/Vulkan-Loader.git" \
+               "v1.4.337" \
+               "$CPM_CACHE_DIR/vulkan-loader/vulkan-loader" \
+               "Vulkan-Loader v1.4.337"
+    echo ""
+
+    #==========================================================================
+    # Step 7: Download GLFW
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading GLFW"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/glfw/glfw.git" \
+               "3.4" \
+               "$CPM_CACHE_DIR/glfw/glfw" \
+               "GLFW 3.4"
+    echo ""
+
+    #==========================================================================
+    # Step 8: Download Dear ImGui
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading Dear ImGui"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/ocornut/imgui.git" \
+               "v1.92.2" \
+               "$CPM_CACHE_DIR/imgui/imgui" \
+               "Dear ImGui v1.92.2"
+    echo ""
+
+    #==========================================================================
+    # Step 9: Download ImGuiFileDialog
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading ImGuiFileDialog"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/aiekick/ImGuiFileDialog.git" \
+               "v0.6.7" \
+               "$CPM_CACHE_DIR/imguifiledialog/ImGuiFileDialog" \
+               "ImGuiFileDialog v0.6.7"
+    echo ""
+
+    #==========================================================================
+    # Step 10: Download spdlog
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading spdlog"
+    log_info "=========================================="
+    echo ""
+
+    clone_repo "https://github.com/gabime/spdlog.git" \
+               "v1.16.0" \
+               "$CPM_CACHE_DIR/spdlog/spdlog" \
+               "spdlog v1.16.0"
+    echo ""
+
+    #==========================================================================
+    # Step 11: Download OpenUSD
+    #==========================================================================
+    ((CURRENT_STEP++))
+    log_info "=========================================="
+    log_info "Step $CURRENT_STEP/$TOTAL_STEPS: Downloading OpenUSD"
     log_info "=========================================="
     echo ""
 
@@ -217,7 +388,6 @@ main() {
         log_info "OpenUSD ${USD_VERSION} already exists, skipping..."
     else
         download_file "$USD_URL" "$USD_OUTPUT" "OpenUSD ${USD_VERSION}"
-        verify_archive "$USD_OUTPUT" "OpenUSD ${USD_VERSION}"
     fi
     echo ""
 
@@ -229,21 +399,18 @@ main() {
     log_info "=========================================="
     echo ""
 
-    log_info "Downloaded files:"
-    echo "  cmake/CPM.cmake"
-    echo "  OpenUSD/src/OpenUSD-${USD_VERSION}.tar.gz"
+    log_success "All dependencies downloaded successfully!"
     echo ""
 
-    log_info "Note: Other dependencies (Vulkan, GLM, ImGui, GLFW, spdlog)"
-    log_info "will be downloaded automatically by CPM.cmake during cmake."
+    log_info "CPM Cache contents:"
+    ls -1 "$CPM_CACHE_DIR" 2>/dev/null | sed 's/^/  /' || echo "  (empty)"
     echo ""
 
-    log_success "Setup complete!"
-    echo ""
     log_info "Next steps:"
     log_info "  1. Build OpenUSD (see README.md 'Build USD' section)"
-    log_info "  2. Run: cmake -B build -DCMAKE_BUILD_TYPE=Release"
+    log_info "  2. Run: HTTP_PROXY=$HTTP_PROXY HTTPS_PROXY=$HTTPS_PROXY cmake -B build -DCMAKE_BUILD_TYPE=Release"
     log_info "  3. Run: cd build && make -j\$(nproc)"
+    echo ""
 }
 
 # Run main
