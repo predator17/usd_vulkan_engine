@@ -9,10 +9,14 @@
 #   ./scripts/download_dependencies.sh
 #
 # Environment:
-#   HTTP_PROXY - Proxy server (default: http://127.0.0.1:8118)
-#   HTTPS_PROXY - Proxy server (default: http://127.0.0.1:8118)
+#   HTTP_PROXY - Proxy server (auto-detected, can be overridden)
+#   HTTPS_PROXY - Proxy server (auto-detected, can be overridden)
 #
 # To bypass proxy, set HTTP_PROXY="" and HTTPS_PROXY=""
+#
+# Proxy Auto-Detection:
+#   Native Linux (Rocky Linux 9.7):   http://127.0.0.1:8118
+#   WSL2 (Windows 11 Rocky Linux):    http://127.0.0.1:10808
 #
 #==============================================================================
 
@@ -25,10 +29,28 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Proxy configuration
-export HTTP_PROXY="${HTTP_PROXY:-http://127.0.0.1:8118}"
-export HTTPS_PROXY="${HTTPS_PROXY:-http://127.0.0.1:8118}"
-export ALL_PROXY="$HTTPS_PROXY"
+# Detect WSL2
+# /proc/version contains "microsoft" in WSL2 environments
+if grep -qi "microsoft" /proc/version 2>/dev/null; then
+    # WSL2 environment - use Windows proxy port
+    DEFAULT_PROXY_PORT="10808"
+    DETECTED_ENV="WSL2 (Windows 11)"
+else
+    # Native Linux - use Linux proxy port
+    DEFAULT_PROXY_PORT="8118"
+    DETECTED_ENV="Native Linux"
+fi
+
+# Proxy configuration (can be overridden by environment variables)
+if [ -z "$HTTP_PROXY" ] && [ -z "$HTTPS_PROXY" ]; then
+    export HTTP_PROXY="http://127.0.0.1:${DEFAULT_PROXY_PORT}"
+    export HTTPS_PROXY="http://127.0.0.1:${DEFAULT_PROXY_PORT}"
+    export ALL_PROXY="$HTTPS_PROXY"
+    AUTO_DETECTED_PROXY=1
+else
+    export ALL_PROXY="${HTTPS_PROXY:-$HTTP_PROXY}"
+    AUTO_DETECTED_PROXY=0
+fi
 
 # Download timeout (seconds)
 DOWNLOAD_TIMEOUT=300
@@ -73,7 +95,6 @@ download_file() {
     log_info "Downloading $description..."
     log_info "  URL: $url"
     log_info "  To: $output"
-    log_info "  Proxy: $HTTP_PROXY"
 
     local attempt=1
     while [ $attempt -le $MAX_RETRIES ]; do
@@ -152,7 +173,12 @@ main() {
     echo "USD Vulkan Engine - Dependencies Download"
     echo "=========================================="
     echo ""
-    log_info "Proxy: $HTTP_PROXY"
+    log_info "Environment: $DETECTED_ENV"
+    if [ "$AUTO_DETECTED_PROXY" -eq 1 ]; then
+        log_info "Proxy: $HTTP_PROXY (auto-detected)"
+    else
+        log_info "Proxy: $HTTP_PROXY (user-specified)"
+    fi
     log_info "Project Root: $PROJECT_ROOT"
     echo ""
 
