@@ -63,13 +63,14 @@ sudo pacman -S glslang
 ```bash
 cd usd_vulkan_engine
 
-# Download all dependencies (CPM packages + USD source)
+# Download CPM.cmake and OpenUSD source
 ./scripts/download_dependencies.sh
 
 # The script will:
 # - Download CPM.cmake to cmake/CPM.cmake
-# - Download CPM dependencies to .cpm-cache/
 # - Download USD source to OpenUSD/src/
+# Note: Other dependencies (Vulkan, GLM, ImGui, etc.) are downloaded
+#       automatically by CPM.cmake during cmake configuration.
 ```
 
 **Option 2: Manual setup**

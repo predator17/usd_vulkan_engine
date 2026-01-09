@@ -3,7 +3,10 @@
 # USD Vulkan Engine - Dependencies Download Script
 #==============================================================================
 #
-# This script downloads all project dependencies from their official sources.
+# This script downloads CPM.cmake and OpenUSD source.
+#
+# All other dependencies (Vulkan, GLM, ImGui, etc.) are downloaded
+# automatically by CPM.cmake during cmake configuration.
 #
 # Usage:
 #   ./scripts/download_dependencies.sh
@@ -107,7 +110,8 @@ download_file() {
                 --show-error \
                 -o "$output" \
                 "$url"; then
-            log_success "Downloaded: $description"
+            local size=$(du -h "$output" | cut -f1)
+            log_success "Downloaded: $description ($size)"
             return 0
         else
             log_warning "Attempt $attempt/$MAX_RETRIES failed for $description"
@@ -128,8 +132,6 @@ verify_archive() {
     local file="$1"
     local description="$2"
 
-    log_info "Verifying $description..."
-
     if [ ! -f "$file" ]; then
         log_error "File not found: $file"
         return 1
@@ -137,32 +139,13 @@ verify_archive() {
 
     # Try to list archive contents
     if tar -tzf "$file" > /dev/null 2>&1; then
-        local size=$(du -h "$file" | cut -f1)
-        log_success "Archive verified: $description ($size)"
+        log_success "Archive verified: $description"
         return 0
     else
         log_error "Archive verification failed: $description"
         return 1
     fi
 }
-
-#==============================================================================
-# Dependency Definitions
-#==============================================================================
-
-declare -A DEPS=(
-    # [name]="url|version|output_dir|filename|description"
-    [cpm]="https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.42.0/CPM.cmake|0.42.0|cmake|CPM.cmake"
-    [catch2]="https://github.com/catchorg/Catch2/archive/refs/tags/v3.12.0.tar.gz|3.12.0|cpm-sources|catch2-3.12.0.tar.gz|Catch2 v3.12.0"
-    [glm]="https://github.com/g-truc/glm/archive/refs/tags/1.0.2.tar.gz|1.0.2|cpm-sources|glm-1.0.2.tar.gz|GLM 1.0.2"
-    [imgui]="https://github.com/ocornut/imgui/archive/refs/tags/v1.92.2.tar.gz|1.92.2|cpm-sources|imgui-1.92.2.tar.gz|Dear ImGui v1.92.2"
-    [spdlog]="https://github.com/gabime/spdlog/archive/refs/tags/v1.16.0.tar.gz|1.16.0|cpm-sources|spdlog-1.16.0.tar.gz|spdlog v1.16.0"
-    [imguifiledialog]="https://github.com/aiekick/ImGuiFileDialog/archive/refs/tags/v0.6.7.tar.gz|0.6.7|cpm-sources|ImGuiFileDialog-0.6.7.tar.gz|ImGuiFileDialog v0.6.7"
-    [glfw]="https://github.com/glfw/glfw/archive/refs/tags/3.4.tar.gz|3.4|cpm-sources|glfw-3.4.tar.gz|GLFW 3.4"
-    [vulkan-headers]="https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v1.4.337.tar.gz|1.4.337|cpm-sources|Vulkan-Headers-1.4.337.tar.gz|Vulkan-Headers v1.4.337"
-    [vulkan-hpp]="https://github.com/KhronosGroup/Vulkan-Hpp/archive/refs/tags/v1.4.337.tar.gz|1.4.337|cpm-sources|Vulkan-Hpp-1.4.337.tar.gz|Vulkan-Hpp v1.4.337"
-    [usd]="https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v25.11.tar.gz|25.11|OpenUSD/src|OpenUSD-25.11.tar.gz|OpenUSD v25.11"
-)
 
 #==============================================================================
 # Main
@@ -197,75 +180,50 @@ main() {
     mkdir -p "$PROJECT_ROOT/OpenUSD/src"
     mkdir -p "$PROJECT_ROOT/OpenUSD/build"
     mkdir -p "$PROJECT_ROOT/OpenUSD/install"
-    mkdir -p "$PROJECT_ROOT/.cpm-cache/_ext"
     log_success "Directories created"
     echo ""
 
-    # Download CPM.cmake first (it's small and needed for others)
+    #==========================================================================
+    # Step 1: Download CPM.cmake
+    #==========================================================================
     log_info "=========================================="
     log_info "Step 1: Downloading CPM.cmake"
     log_info "=========================================="
+    echo ""
 
-    local cpm_info="${DEPS[cpm]}"
-    IFS='|' read -r cpm_url cpm_ver cpm_dir cpm_file cpm_desc <<< "$cpm_info"
+    local CPM_VERSION="v0.42.0"
+    local CPM_URL="https://github.com/cpm-cmake/CPM.cmake/releases/download/${CPM_VERSION}/CPM.cmake"
 
     if [ ! -f "$PROJECT_ROOT/cmake/CPM.cmake" ]; then
-        download_file "$cpm_url" "$PROJECT_ROOT/cmake/CPM.cmake" "$cpm_desc"
+        download_file "$CPM_URL" "$PROJECT_ROOT/cmake/CPM.cmake" "CPM.cmake ${CPM_VERSION}"
     else
         log_info "CPM.cmake already exists, skipping..."
     fi
     echo ""
 
-    # Download CPM-managed dependencies
+    #==========================================================================
+    # Step 2: Download OpenUSD
+    #==========================================================================
     log_info "=========================================="
-    log_info "Step 2: Downloading CPM Dependencies"
-    log_info "=========================================="
-    echo ""
-
-    local cpm_sources_dir="$PROJECT_ROOT/.cpm-cache/_ext"
-
-    for dep in catch2 glm imgui spdlog imguifiledialog glfw vulkan-headers vulkan-hpp; do
-        local info="${DEPS[$dep]}"
-        IFS='|' read -r url version dir filename description <<< "$info"
-
-        local output_path="$PROJECT_ROOT/$dir/$filename"
-
-        if [ -f "$output_path" ]; then
-            log_info "$description already exists, skipping..."
-            echo ""
-            continue
-        fi
-
-        mkdir -p "$PROJECT_ROOT/$dir"
-        download_file "$url" "$output_path" "$description"
-        verify_archive "$output_path" "$description"
-        echo ""
-    done
-
-    # Download OpenUSD (large, separate)
-    log_info "=========================================="
-    log_info "Step 3: Downloading OpenUSD"
+    log_info "Step 2: Downloading OpenUSD v25.11"
     log_info "=========================================="
     echo ""
 
-    local usd_info="${DEPS[usd]}"
-    IFS='|' read -r usd_url usd_ver usd_dir usd_file usd_desc <<< "$usd_info"
+    local USD_VERSION="v25.11"
+    local USD_URL="https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/${USD_VERSION}.tar.gz"
+    local USD_OUTPUT="$PROJECT_ROOT/OpenUSD/src/OpenUSD-${USD_VERSION}.tar.gz"
 
-    local usd_output="$PROJECT_ROOT/$usd_dir/$usd_file"
-
-    if [ -f "$usd_output" ]; then
-        log_info "$usd_desc already exists, skipping..."
+    if [ -f "$USD_OUTPUT" ]; then
+        log_info "OpenUSD ${USD_VERSION} already exists, skipping..."
     else
-        download_file "$usd_url" "$usd_output" "$usd_desc"
-        verify_archive "$usd_output" "$usd_desc"
-
-        # Get file size
-        local size=$(du -h "$usd_output" | cut -f1)
-        log_success "OpenUSD downloaded: $size"
+        download_file "$USD_URL" "$USD_OUTPUT" "OpenUSD ${USD_VERSION}"
+        verify_archive "$USD_OUTPUT" "OpenUSD ${USD_VERSION}"
     fi
     echo ""
 
+    #==========================================================================
     # Summary
+    #==========================================================================
     log_info "=========================================="
     log_info "Download Summary"
     log_info "=========================================="
@@ -273,25 +231,19 @@ main() {
 
     log_info "Downloaded files:"
     echo "  cmake/CPM.cmake"
-    echo "  .cpm-cache/_ext/"
-    echo "    ├── catch2-3.12.0.tar.gz"
-    echo "    ├── glm-1.0.2.tar.gz"
-    echo "    ├── imgui-1.92.2.tar.gz"
-    echo "    ├── spdlog-1.16.0.tar.gz"
-    echo "    ├── ImGuiFileDialog-0.6.7.tar.gz"
-    echo "    ├── glfw-3.4.tar.gz"
-    echo "    ├── Vulkan-Headers-1.4.337.tar.gz"
-    echo "    └── Vulkan-Hpp-1.4.337.tar.gz"
-    echo "  OpenUSD/src/"
-    echo "    └── OpenUSD-25.11.tar.gz"
+    echo "  OpenUSD/src/OpenUSD-${USD_VERSION}.tar.gz"
     echo ""
 
-    log_success "All dependencies downloaded successfully!"
+    log_info "Note: Other dependencies (Vulkan, GLM, ImGui, GLFW, spdlog)"
+    log_info "will be downloaded automatically by CPM.cmake during cmake."
+    echo ""
+
+    log_success "Setup complete!"
     echo ""
     log_info "Next steps:"
-    log_info "  1. Review and approve the refactor_dependencies.md document"
-    log_info "  2. Run: ./scripts/build_dependencies.sh (to build dependencies)"
-    log_info "  3. Run: cmake -B build (to configure the project)"
+    log_info "  1. Build OpenUSD (see README.md 'Build USD' section)"
+    log_info "  2. Run: cmake -B build -DCMAKE_BUILD_TYPE=Release"
+    log_info "  3. Run: cd build && make -j\$(nproc)"
 }
 
 # Run main

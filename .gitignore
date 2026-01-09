@@ -11,7 +11,6 @@ cmake-build-release*/
 # CPM.cmake (dependency manager)
 #==============================================================================
 .cpm-cache/
-cpm-sources/
 
 #==============================================================================
 # CMake Generated Files
@@ -26,7 +25,9 @@ _deps/
 #==============================================================================
 # OpenUSD (built from source)
 #==============================================================================
-# Keep downloaded tarball in src/, ignore extracted source
+# Ignore downloaded tarballs (too large for GitHub)
+OpenUSD/src/*.tar.gz
+# Ignore extracted source and build artifacts
 OpenUSD/usd-src/
 OpenUSD/build/
 OpenUSD/install/
