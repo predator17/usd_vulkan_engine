@@ -96,6 +96,13 @@ if(vulkan-headers_ADDED)
         )
     endif()
 
+    # Disable constexpr to_string functions for GCC 11 compatibility
+    # GCC 11 doesn't support constexpr std::string even in C++20 mode
+    # This disables the problematic to_string functions in vulkan_to_string.hpp
+    target_compile_definitions(Vulkan_Headers INTERFACE
+        VULKAN_HPP_NO_TO_STRING
+    )
+
     # Create Vulkan::Vulkan as an alias to our header-only interface
     add_library(Vulkan::Vulkan ALIAS Vulkan_Headers)
     # Create Vulkan::Headers alias only if it doesn't already exist
@@ -107,6 +114,18 @@ if(vulkan-headers_ADDED)
     message(STATUS "  Vulkan-Headers: ${vulkan-headers_SOURCE_DIR}/include")
     if(vulkan-hpp_ADDED)
         message(STATUS "  Vulkan-Hpp: ${vulkan-hpp_SOURCE_DIR}")
+    endif()
+
+    # Find Vulkan loader library for linking C API functions (ImGui backend)
+    # This is only used at link time - runtime Vulkan comes from graphics drivers
+    find_library(VULKAN_LIBRARY
+        NAMES vulkan vulkan.so.1 libvulkan.so
+        PATHS /usr/lib /usr/lib64 /usr/lib/x86_64-linux-gnu /usr/local/lib
+    )
+    if(VULKAN_LIBRARY)
+        message(STATUS "  Vulkan loader: ${VULKAN_LIBRARY}")
+    else()
+        message(WARNING "Vulkan loader library not found. This may cause linker errors.")
     endif()
 else()
     message(FATAL_ERROR "Vulkan headers not found via CPM. Please run: ./scripts/download_dependencies.sh")
@@ -122,7 +141,7 @@ CPMAddPackage(
     NAME glfw
     GITHUB_REPOSITORY glfw/glfw
     GIT_TAG 3.4
-    OPTIONS "GLFW_BUILD_TESTS OFF" "GLFW_BUILD_DOCS OFF" "GLFW_BUILD_EXAMPLES OFF"
+    OPTIONS "GLFW_BUILD_TESTS OFF" "GLFW_BUILD_DOCS OFF" "GLFW_BUILD_EXAMPLES OFF" "GLFW_BUILD_WAYLAND OFF" "GLFW_USE_OSMESA OFF"
 )
 if(glfw_ADDED)
     message(STATUS "GLFW v${glfw_VERSION} via CPM")

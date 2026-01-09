@@ -29,7 +29,8 @@ target_link_libraries(usd_vulkan_engine
     usd_vk_core
     usd_vk_usd
     usd_vk_ui
-    Vulkan::Vulkan
+    Vulkan::Vulkan    # Header-only for C++ bindings
+    ${VULKAN_LIBRARY} # Actual Vulkan loader for C API (required by ImGui), from root CMakeLists.txt
     glm::glm
     spdlog::spdlog
     Threads::Threads
