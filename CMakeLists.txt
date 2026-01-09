@@ -115,20 +115,26 @@ if(vulkan-headers_ADDED)
     if(vulkan-hpp_ADDED)
         message(STATUS "  Vulkan-Hpp: ${vulkan-hpp_SOURCE_DIR}")
     endif()
-
-    # Find Vulkan loader library for linking C API functions (ImGui backend)
-    # This is only used at link time - runtime Vulkan comes from graphics drivers
-    find_library(VULKAN_LIBRARY
-        NAMES vulkan vulkan.so.1 libvulkan.so
-        PATHS /usr/lib /usr/lib64 /usr/lib/x86_64-linux-gnu /usr/local/lib
-    )
-    if(VULKAN_LIBRARY)
-        message(STATUS "  Vulkan loader: ${VULKAN_LIBRARY}")
-    else()
-        message(WARNING "Vulkan loader library not found. This may cause linker errors.")
-    endif()
 else()
     message(FATAL_ERROR "Vulkan headers not found via CPM. Please run: ./scripts/download_dependencies.sh")
+endif()
+
+# Vulkan-Loader - Needed for linking C API functions (ImGui backend uses raw Vulkan C)
+# Note: This is the loader library, not headers. We build it from source for self-contained builds.
+CPMAddPackage(
+    NAME vulkan-loader
+    GITHUB_REPOSITORY KhronosGroup/Vulkan-Loader
+    VERSION 1.4.337
+    OPTIONS "BUILD_TESTS OFF" "BUILD_WSI_XCB_SUPPORT ON" "BUILD_WSI_XLIB_SUPPORT ON" "BUILD_WSI_WAYLAND_SUPPORT OFF"
+)
+
+if(vulkan-loader_ADDED)
+    # Vulkan-Loader creates a 'vulkan' target when built
+    message(STATUS "Vulkan-Loader v${vulkan-loader_VERSION} via CPM")
+    # Create an alias for consistent naming
+    if(TARGET vulkan AND NOT TARGET Vulkan::Loader)
+        add_library(Vulkan::Loader ALIAS vulkan)
+    endif()
 endif()
 
 #==============================================================================

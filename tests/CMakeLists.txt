@@ -93,7 +93,7 @@ function(add_usd_vk_render_test test_name)
         usd_vk_render
         Catch2::Catch2WithMain
         Vulkan::Vulkan
-        ${VULKAN_LIBRARY}
+        Vulkan::Loader
         glm::glm
         spdlog::spdlog
         Threads::Threads
