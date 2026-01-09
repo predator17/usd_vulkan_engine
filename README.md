@@ -37,20 +37,25 @@ A C++20 real-time USD (Universal Scene Description) viewer built with Vulkan ren
 **System Requirements:**
 - C++20 compatible compiler (GCC 11+, Clang 13+, MSVC 2022+)
 - CMake 3.20+
-- Vulkan SDK (for glslangValidator shader compiler)
+- glslangValidator (for shader compilation)
 - Git
+- Vulkan-capable GPU with drivers (provides libvulkan.so runtime)
 
-**Install Vulkan SDK:**
+**Install glslangValidator:**
 ```bash
 # Ubuntu/Debian:
-sudo apt install vulkan-sdk glslang-tools
+sudo apt install glslang-tools
 
 # Fedora:
-sudo dnf install vulkan-devel glslang
+sudo dnf install glslang
 
 # Arch:
-sudo pacman -S vulkan-headers glslang
+sudo pacman -S glslang
 ```
+
+> **Note:** Vulkan headers (Vulkan-Headers, Vulkan-Hpp) and GLM are downloaded
+> automatically by CPM.cmake. Only the Vulkan loader from your graphics driver
+> is required at runtime.
 
 ### Initial Setup (First Time Only)
 
