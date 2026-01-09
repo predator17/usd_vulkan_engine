@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
+using Catch::Approx;  // Catch2 v3
 #include <render/vulkan_context.hpp>
 #include <render/vulkan_buffer.hpp>
 #include <glm/glm.hpp>

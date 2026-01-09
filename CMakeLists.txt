@@ -5,7 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Build type
+#==============================================================================
+# Build Configuration
+#==============================================================================
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -17,68 +19,193 @@ option(USD_VULKAN_ENGINE_VALIDATION "Enable Vulkan validation layers" ON)
 # Add our cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-# Include FetchContent
-include(FetchContent)
+#==============================================================================
+# CPM.cmake Configuration
+#==============================================================================
+set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/.cpm-cache" CACHE PATH "CPM cache directory")
+set(CPM_USE_NAMED_CACHE_DIRECTORIES TRUE)  # Better IDE readability
+set(CPM_DOWNLOAD_ALL ${DOWNLOAD_ALL} CACHE BOOL "Download all dependencies from internet" INTERNAL)
 
-# Find dependencies
-find_package(Threads REQUIRED)
-
-# spdlog - use local version from external/
-if(EXISTS "${CMAKE_SOURCE_DIR}/external/spdlog/include/spdlog/spdlog.h")
-    message(STATUS "Using local spdlog from external/spdlog")
-    set(SPDLOG_FOUND TRUE)
-    add_library(spdlog INTERFACE)
-    target_include_directories(spdlog INTERFACE "${CMAKE_SOURCE_DIR}/external/spdlog/include")
-    add_library(spdlog::spdlog ALIAS spdlog)
+# CPM.cmake is already downloaded to cmake/CPM.cmake
+if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/CPM.cmake")
+    include(${CMAKE_SOURCE_DIR}/cmake/CPM.cmake)
+    message(STATUS "CPM.cmake loaded from cmake/CPM.cmake")
 else()
-    message(FATAL_ERROR "spdlog not found in external/spdlog. Please download it.")
+    message(FATAL_ERROR "CPM.cmake not found. Please run: ./scripts/download_dependencies.sh")
 endif()
 
-# GLM - use local version from external/
-if(EXISTS "${CMAKE_SOURCE_DIR}/external/glm/glm/glm.hpp")
-    message(STATUS "Using local GLM from external/glm")
-    set(GLM_FOUND TRUE)
-    add_library(glm INTERFACE)
-    target_include_directories(glm INTERFACE "${CMAKE_SOURCE_DIR}/external/glm")
-    add_library(glm::glm ALIAS glm)
-else()
-    message(FATAL_ERROR "GLM not found in external/glm. Please download it.")
+#==============================================================================
+# Dependencies via CPM.cmake
+#==============================================================================
+
+# Catch2 v3.12.0 - Testing framework
+CPMAddPackage(
+    NAME catch2
+    VERSION 3.12.0
+    GITHUB_REPOSITORY catchorg/Catch2
+    OPTIONS "BUILD_TESTING OFF"
+)
+if(catch2_ADDED)
+    message(STATUS "Catch2 v${catch2_VERSION} via CPM")
 endif()
 
-# GLFW3
-find_package(glfw3 REQUIRED)
-
-# USD (CORE DEPENDENCY - required for USD loading support)
-set(USD_ROOT "${CMAKE_SOURCE_DIR}/external/USD/install" CACHE PATH "USD installation path")
-if(EXISTS "${USD_ROOT}")
-    set(USD_LIB_DIR "${USD_ROOT}/lib")
-    set(USD_INCLUDE_DIR "${USD_ROOT}/include")
-    link_directories(${USD_LIB_DIR})
-    include_directories(${USD_INCLUDE_DIR})
-    set(USD_FOUND TRUE)
-    message(STATUS "USD found at ${USD_ROOT}")
-    # Add RPATH for USD libraries
-    set(CMAKE_INSTALL_RPATH "${USD_LIB_DIR}")
-    set(CMAKE_BUILD_RPATH "${USD_LIB_DIR}")
-else()
-    set(USD_FOUND FALSE)
-    message(FATAL_ERROR "USD not found at ${USD_ROOT}. USD is a core dependency of this project.")
-    message(FATAL_ERROR "  Please build USD in external/USD/install before continuing.")
+# GLM 1.0.2 - Header-only math library
+# Note: GLM tags don't use 'v' prefix, use GIT_TAG directly
+CPMAddPackage(
+    NAME glm
+    GITHUB_REPOSITORY g-truc/glm
+    GIT_TAG 1.0.2
+)
+if(glm_ADDED)
+    message(STATUS "GLM v${glm_VERSION} via CPM")
 endif()
 
-# Vulkan
-find_package(Vulkan REQUIRED)
+# Dear ImGui v1.92.2 - Immediate mode GUI (stable release)
+CPMAddPackage(
+    NAME imgui
+    GITHUB_REPOSITORY ocornut/imgui
+    VERSION 1.92.2
+)
+if(imgui_ADDED)
+    # Create static library target for Dear ImGui with backends
+    if(NOT TARGET imgui)
+        add_library(imgui STATIC
+            ${imgui_SOURCE_DIR}/imgui.cpp
+            ${imgui_SOURCE_DIR}/imgui_demo.cpp
+            ${imgui_SOURCE_DIR}/imgui_draw.cpp
+            ${imgui_SOURCE_DIR}/imgui_tables.cpp
+            ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+        )
+        target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+        target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
+        message(STATUS "Dear ImGui v${imgui_VERSION} via CPM")
+    endif()
+    # Export imgui source directory for ImGuiFileDialog
+    set(IMGUI_ROOT_DIR ${imgui_SOURCE_DIR} CACHE PATH "ImGui root directory" FORCE)
+endif()
 
-# Include directories
-include_directories(
-    ${CMAKE_SOURCE_DIR}/src
+# spdlog v1.16.0 - Logging library
+CPMAddPackage(
+    NAME spdlog
+    GITHUB_REPOSITORY gabime/spdlog
+    VERSION 1.16.0
+    OPTIONS "SPDLOG_BUILD_SHARED OFF" "SPDLOG_BUILD_TESTS OFF" "SPDLOG_INSTALL OFF"
+)
+if(spdlog_ADDED)
+    message(STATUS "spdlog v${spdlog_VERSION} via CPM")
+endif()
+
+# ImGuiFileDialog v0.6.7 - File dialog for ImGui
+CPMAddPackage(
+    NAME ImGuiFileDialog
+    GITHUB_REPOSITORY aiekick/ImGuiFileDialog
+    VERSION 0.6.7
+)
+if(ImGuiFileDialog_ADDED)
+    message(STATUS "ImGuiFileDialog v${ImGuiFileDialog_VERSION} via CPM")
+    # ImGuiFileDialog needs to find imgui.h - add include directory
+    if(TARGET ImGuiFileDialog)
+        if(imgui_ADDED)
+            target_include_directories(ImGuiFileDialog PRIVATE ${imgui_SOURCE_DIR})
+            message(STATUS "  Added imgui include dir to ImGuiFileDialog")
+        endif()
+    endif()
+endif()
+
+# GLFW v3.4 - Window/input library (via CPM for self-contained builds)
+# Note: GLFW tags don't use 'v' prefix, use GIT_TAG directly
+CPMAddPackage(
+    NAME glfw
+    GITHUB_REPOSITORY glfw/glfw
+    GIT_TAG 3.4
+    OPTIONS "GLFW_BUILD_TESTS OFF" "GLFW_BUILD_DOCS OFF" "GLFW_BUILD_EXAMPLES OFF"
+)
+if(glfw_ADDED)
+    message(STATUS "GLFW v${glfw_VERSION} via CPM")
+endif()
+
+# Vulkan-Headers v1.4.337 - Vulkan C API headers (via CPM)
+CPMAddPackage(
+    NAME vulkan-headers
+    GITHUB_REPOSITORY KhronosGroup/Vulkan-Headers
+    VERSION 1.4.337
 )
 
-# Subdirectories
-add_subdirectory(external)
+# Vulkan-Hpp v1.4.337 - Vulkan C++ bindings (via CPM)
+CPMAddPackage(
+    NAME vulkan-hpp
+    GITHUB_REPOSITORY KhronosGroup/Vulkan-Hpp
+    VERSION 1.4.337
+)
+
+# Create Vulkan imported target from CPM dependencies
+# Note: FindVulkan.cmake may be called by dependencies (like GLFW) and creates Vulkan targets
+
+# First, try to find Vulkan to populate targets if not already done
+find_package(Vulkan QUIET)
+
+if(TARGET Vulkan::Vulkan)
+    message(STATUS "Vulkan::Vulkan already exists (using FindVulkan.cmake)")
+elseif(TARGET Vulkan::Headers)
+    # Vulkan::Headers exists but Vulkan::Vulkan doesn't
+    # Check if Vulkan::Headers is an IMPORTED target (not ALIAS) before creating alias
+    get_target_property(_vulkan_imported Vulkan::Headers IMPORTED)
+    if(_vulkan_imported)
+        get_target_property(_vulkan_alias_target Vulkan::Headers ALIASED_TARGET)
+        if(NOT _vulkan_alias_target)
+            # Vulkan::Headers is IMPORTED and not itself an ALIAS, safe to create alias
+            add_library(Vulkan::Vulkan ALIAS Vulkan::Headers)
+            message(STATUS "Created Vulkan::Vulkan alias to Vulkan::Headers")
+        else()
+            message(WARNING "Vulkan::Headers is an ALIAS to ${_vulkan_alias_target}, cannot create Vulkan::Vulkan")
+        endif()
+    endif()
+elseif(vulkan-headers_ADDED AND vulkan-hpp_ADDED)
+    # No Vulkan targets found, create from CPM sources
+    add_library(Vulkan::Headers INTERFACE IMPORTED GLOBAL)
+    target_include_directories(Vulkan::Headers INTERFACE
+        ${vulkan-headers_SOURCE_DIR}/include
+        ${vulkan-hpp_SOURCE_DIR}
+    )
+    add_library(Vulkan::Vulkan ALIAS Vulkan::Headers)
+    message(STATUS "Vulkan v${vulkan-headers_VERSION} (headers only) via CPM")
+    message(STATUS "  Note: Vulkan loader (libvulkan.so/vulkan-1.dll) must be provided by graphics driver")
+else()
+    message(WARNING "Vulkan headers not found via CPM or FindVulkan")
+endif()
+
+# Threads (always required)
+find_package(Threads REQUIRED)
+
+#==============================================================================
+# USD - Local Build (Not managed by CPM)
+#==============================================================================
+include(${CMAKE_SOURCE_DIR}/cmake/UsdConfig.cmake)
+
+#==============================================================================
+# Shader Compilation Configuration
+#==============================================================================
+find_program(GLSLANG_VALIDATOR glslangValidator
+    PATHS
+        "/usr/bin"
+        "/usr/local/bin"
+        "$ENV{VULKAN_SDK}/Bin"
+        "/opt/VulkanSDK"
+        "/usr/lib/x86_64-linux-gnu/glslang"
+        "/usr/bin/glslang"
+)
+
+if(NOT GLSLANG_VALIDATOR)
+    message(WARNING "glslangValidator not found - shaders must be pre-compiled manually")
+endif()
+
+#==============================================================================
+# Project Subdirectories
+#==============================================================================
 add_subdirectory(src)
 
-# Tests
 if(USD_VULKAN_ENGINE_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
@@ -101,21 +228,15 @@ add_custom_target(project-clean
     COMMAND ${CMAKE_COMMAND} -E remove_directory
         ${CMAKE_BINARY_DIR}/src/*/CMakeFiles
         ${CMAKE_BINARY_DIR}/tests/CMakeFiles
-        ${CMAKE_BINARY_DIR}/external/CMakeFiles
     COMMAND ${CMAKE_COMMAND} -E remove_directory
         ${CMAKE_SOURCE_DIR}/build/CMakeFiles
         ${CMAKE_SOURCE_DIR}/build/src/CMakeFiles
         ${CMAKE_SOURCE_DIR}/build/tests/CMakeFiles
         ${CMAKE_SOURCE_DIR}/build/external/CMakeFiles
-    COMMAND ${CMAKE_COMMAND} -E remove
-        ${CMAKE_SOURCE_DIR}/build/CMakeCache.txt
-        ${CMAKE_SOURCE_DIR}/build/cmake_install.cmake
-        ${CMAKE_SOURCE_DIR}/build/Makefile
     COMMAND ${CMAKE_COMMAND} -E remove_directory
         ${CMAKE_SOURCE_DIR}/src/CMakeFiles
         ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
         ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
     COMMENT "Cleaning build artifacts..."
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
@@ -129,7 +250,6 @@ add_custom_target(distclean
         ${CMAKE_SOURCE_DIR}/src/CMakeFiles
         ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
         ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
     COMMAND ${CMAKE_COMMAND} -E remove
         ${CMAKE_SOURCE_DIR}/CMakeCache.txt
         ${CMAKE_SOURCE_DIR}/cmake_install.cmake
@@ -147,45 +267,8 @@ add_custom_target(tidy
         ${CMAKE_SOURCE_DIR}/build/CMakeFiles
         ${CMAKE_SOURCE_DIR}/build/src/CMakeFiles
         ${CMAKE_SOURCE_DIR}/build/tests/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/build/external/CMakeFiles
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "*.log" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "latest" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.log" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.zip" -delete
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/shaders
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/.cmake
     COMMENT "Tidying up project..."
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-)
-
-# sweep target - aggressive cleanup of all temp/artifact files
-add_custom_target(sweep
-    COMMAND ${CMAKE_COMMAND} -E remove_directory
-        ${CMAKE_SOURCE_DIR}/src/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
-    COMMAND ${CMAKE_COMMAND} -E remove
-        ${CMAKE_SOURCE_DIR}/CMakeCache.txt
-        ${CMAKE_SOURCE_DIR}/cmake_install.cmake
-        ${CMAKE_SOURCE_DIR}/Makefile
-    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "cmake_install.cmake" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/src -name "Makefile" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "cmake_install.cmake" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/tests -name "Makefile" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "CMakeCache.txt" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "cmake_install.cmake" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "Makefile" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external/build -type d -delete 2>/dev/null || true
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "*.log" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR}/external -name "latest" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.log" -delete
-    COMMAND find ${CMAKE_SOURCE_DIR} -maxdepth 1 -name "*.zip" -delete
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/shaders
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/.cmake
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/_deps
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/cmake-build-debug
-    COMMENT "Sweeping all artifacts..."
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
@@ -195,10 +278,8 @@ add_custom_target(help-cleanup
     COMMAND ${CMAKE_COMMAND} -E echo "Cleanup Targets:"
     COMMAND ${CMAKE_COMMAND} -E echo "  make project-clean - Remove build artifacts, keep build dir"
     COMMAND ${CMAKE_COMMAND} -E echo "  make tidy         - Remove intermediate files, keep binaries"
-    COMMAND ${CMAKE_COMMAND} -E echo "  make sweep        - Aggressive cleanup of all artifacts"
     COMMAND ${CMAKE_COMMAND} -E echo "  make distclean    - Remove entire build directory"
     COMMAND ${CMAKE_COMMAND} -E echo "  make help-cleanup - Show this help message"
-    COMMAND ${CMAKE_COMMAND} -E echo "  ./cleanup.sh - Shell script alternative"
     COMMAND ${CMAKE_COMMAND} -E echo ""
     COMMENT "Cleanup help"
 )
@@ -209,7 +290,6 @@ add_custom_target(postbuild_cleanup
         ${CMAKE_SOURCE_DIR}/src/CMakeFiles
         ${CMAKE_SOURCE_DIR}/src/*/CMakeFiles
         ${CMAKE_SOURCE_DIR}/tests/CMakeFiles
-        ${CMAKE_SOURCE_DIR}/external/CMakeFiles
     COMMAND ${CMAKE_COMMAND} -E remove
         ${CMAKE_SOURCE_DIR}/CMakeCache.txt
         ${CMAKE_SOURCE_DIR}/cmake_install.cmake

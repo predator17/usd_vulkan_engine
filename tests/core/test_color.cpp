@@ -1,4 +1,6 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
+using Catch::Approx;  // Catch2 v3
+using Catch::Approx;  // Catch2 v3 requires explicit namespace for Approx
 #include <core/color.hpp>
 #include <cmath>
 

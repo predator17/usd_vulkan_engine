@@ -1,7 +1,12 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
+using Catch::Approx;  // Catch2 v3
 #include <core/assert.hpp>
 #include <sstream>
 #include <cstring>
+#include <cmath>
+#include <limits>
+
+using Catch::Approx;  // Catch2 v3 requires explicit namespace for Approx
 
 TEST_CASE("Assert: USD_TRUE passes with true condition", "[core][assert]") {
     // This should not throw

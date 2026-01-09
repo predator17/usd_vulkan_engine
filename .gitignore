@@ -1,9 +1,16 @@
-# Build directories
+#==============================================================================
+# Build Directories
+#==============================================================================
 build/
 .cmake/
 cmake-build-debug*/
 out/
 cmake-out*/
+
+# CPM.cmake cache directory
+.cpm-cache/
+
+# External build directories (legacy)
 external/build/
 external/CMakeFiles/
 
@@ -15,16 +22,37 @@ CMakeFiles/
 # Shader output directory at root (shaders are in src/shaders/)
 shaders/
 
-# CMake generated files
+#==============================================================================
+# CMake Generated Files
+#==============================================================================
 CMakeCache.txt
-CMakeFiles/
 cmake_install.cmake
 cmake_check_install.cmake
 compile_commands.json
 CTestTestfile.cmake
 _deps/
+Makefile*
 
-# Compiled binaries
+#==============================================================================
+# OpenUSD Directory Structure
+#==============================================================================
+# Source archives (ignore - downloaded by script)
+OpenUSD/src/
+
+# Build directory (remove)
+OpenUSD/build/
+
+# Install directory (remove - built from source)
+OpenUSD/install/
+
+#==============================================================================
+# CPM Sources Directory (downloaded by script)
+#==============================================================================
+cpm-sources/
+
+#==============================================================================
+# Compiled Binaries and Objects
+#==============================================================================
 *.exe
 *.out
 *.app
@@ -39,19 +67,9 @@ _deps/
 *.dylib
 *.dll
 
-# Qt/IDE specific
-*.autosave
-*.qmlc
-*.jsc
-Makefile*
-*.make
-*.user
-*.pro.user
-*.qmlproject.user
-*.workspace
-.metadata/
-
-# IDE specific
+#==============================================================================
+# IDE Specific
+#==============================================================================
 .claude/
 .vscode/
 .idea/
@@ -62,35 +80,51 @@ Makefile*
 .classpath
 .cproject
 .settings/
+.metadata/
+*.autosave
+*.qmlc
+*.jsc
+*.user
+*.pro.user
+*.qmlproject.user
+*.workspace
 
 # clangd
 .clangd/
 .cache/
 
+#==============================================================================
 # Python
+#==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
 .Python
 venv/
 env/
 ENV/
 
-# USD build artifacts (keep source, remove build)
+#==============================================================================
+# Legacy External Directory (being phased out)
+#==============================================================================
 external/USD/install/
 external/USD/OpenUSD-src/
-external/USD/*.tar.gz
-external/USD/*.zip
+# Keep: external/USD/*.tar.gz (source archives)
 
-# Log files
+#==============================================================================
+# Log Files
+#==============================================================================
 *.log
 external/latest
 
-# Archive files at root
+#==============================================================================
+# Archive Files at Root
+#==============================================================================
 *.zip
 
-# OS specific
+#==============================================================================
+# OS Specific
+#==============================================================================
 .DS_Store
 .DS_Store?
 ._*
@@ -98,3 +132,4 @@ external/latest
 .Trashes
 ehthumbs.db
 Thumbs.db
+

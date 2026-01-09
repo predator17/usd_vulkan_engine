@@ -31,7 +31,6 @@ find_program(GLSLANG_VALIDATOR glslangValidator
         "$ENV{VULKAN_SDK}/Bin"
         "/usr/lib/x86_64-linux-gnu/glslang"
         "/usr/bin/glslang"
-        "/mnt/wd_hdd_18t/rd/dependencies/vulkan/1.3.290.0/x86_64/bin"
 )
 
 if(GLSLANG_VALIDATOR)
