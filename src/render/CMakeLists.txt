@@ -22,55 +22,83 @@ set(RENDER_HEADERS
     renderer.hpp
 )
 
-# Shader compilation
-find_program(GLSLANG_VALIDATOR glslangValidator
-    PATHS
-        "/usr/bin"
-        "/usr/local/bin"
-        "/opt/VulkanSDK"
-        "$ENV{VULKAN_SDK}/Bin"
-        "/usr/lib/x86_64-linux-gnu/glslang"
-        "/usr/bin/glslang"
+#==============================================================================
+# Shader Configuration - Supports pre-compiled SPIR-V files
+#==============================================================================
+
+# Output directory for compiled SPIR-V shaders
+set(SPIRV_OUTPUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+file(MAKE_DIRECTORY ${SPIRV_OUTPUT_DIR})
+
+# Shader source directory
+set(SHADER_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/shaders")
+
+# Find all GLSL shader files
+file(GLOB GLSL_SHADERS
+    "${SHADER_SOURCE_DIR}/*.vert"
+    "${SHADER_SOURCE_DIR}/*.frag"
+    "${SHADER_SOURCE_DIR}/*.geom"
+    "${SHADER_SOURCE_DIR}/*.comp"
+    "${SHADER_SOURCE_DIR}/*.tesc"
+    "${SHADER_SOURCE_DIR}/*.tese"
 )
 
-if(GLSLANG_VALIDATOR)
-    message(STATUS "Found glslangValidator: ${GLSLANG_VALIDATOR}")
+# Process each shader
+foreach(GLSL ${GLSL_SHADERS})
+    get_filename_component(SHADER_NAME ${GLSL} NAME_WE)
+    get_filename_component(SHADER_EXT ${GLSL} EXT)
+    set(SPIRV_NAME "${SHADER_NAME}${SHADER_EXT}.spv"
 
-    # Find all GLSL shader files (exclude .spv files)
-    file(GLOB GLSL_SHADERS
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.vert"
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.frag"
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.geom"
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.comp"
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.tesc"
-        "${CMAKE_SOURCE_DIR}/src/shaders/*.tese"
-    )
-    # Filter out .spv files if any were incorrectly matched
-    list(FILTER GLSL_SHADERS EXCLUDE REGEX "\\.spv$")
+    # Check if pre-compiled SPIR-V exists in source directory
+    set(PRECOMPILED_SPIRV "${SHADER_SOURCE_DIR}/${SPIRV_NAME}")
+    set(OUTPUT_SPIRV "${SPIRV_OUTPUT_DIR}/${SPIRV_NAME}")
 
-    # Create output directory
-    set(SPIRV_OUTPUT_DIR "${CMAKE_BINARY_DIR}/shaders")
-    file(MAKE_DIRECTORY ${SPIRV_OUTPUT_DIR})
-
-    foreach(GLSL ${GLSL_SHADERS})
-        get_filename_component(SHADER_NAME ${GLSL} NAME_WE)
-        get_filename_component(SHADER_EXT ${GLSL} EXT)
-        set(SPIRV "${SPIRV_OUTPUT_DIR}/${SHADER_NAME}${SHADER_EXT}.spv")
-
+    if(EXISTS "${PRECOMPILED_SPIRV}")
+        # Use pre-compiled SPIR-V - copy to build directory
         add_custom_command(
-            OUTPUT ${SPIRV}
-            COMMAND ${GLSLANG_VALIDATOR} -V ${GLSL} -o ${SPIRV}
-            DEPENDS ${GLSL}
-            COMMENT "Compiling shader: ${SHADER_NAME}${SHADER_EXT}"
+            OUTPUT ${OUTPUT_SPIRV}
+            COMMAND ${CMAKE_COMMAND} -E copy ${PRECOMPILED_SPIRV} ${OUTPUT_SPIRV}
+            DEPENDS ${PRECOMPILED_SPIRV}
+            COMMENT "Copying pre-compiled shader: ${SPIRV_NAME}"
         )
+        list(APPEND SPIRV_BINARY_FILES ${OUTPUT_SPIRV})
+    else()
+        # No pre-compiled SPIR-V - need glslangValidator
+        if(NOT GLSLANG_VALIDATOR)
+            # Find glslangValidator only once if needed
+            find_program(GLSLANG_VALIDATOR glslangValidator
+                PATHS
+                    "${CMAKE_SOURCE_DIR}/tools/bin"  # Project-local tools
+                    "/usr/bin"
+                    "/usr/local/bin"
+                    "$ENV{VULKAN_SDK}/x86_64/bin"
+                    "/opt/VulkanSDK/x86_64/bin"
+            )
+        endif()
 
-        list(APPEND SPIRV_BINARY_FILES ${SPIRV})
-    endforeach()
+        if(GLSLANG_VALIDATOR)
+            message(STATUS "Compiling shader: ${SPIRV_NAME}")
+            add_custom_command(
+                OUTPUT ${OUTPUT_SPIRV}
+                COMMAND ${GLSLANG_VALIDATOR} -V ${GLSL} -o ${OUTPUT_SPIRV}
+                DEPENDS ${GLSL}
+                COMMENT "Compiling shader: ${SPIRV_NAME}"
+            )
+            list(APPEND SPIRV_BINARY_FILES ${OUTPUT_SPIRV})
+        else()
+            message(WARNING "===============================================================================")
+            message(WARNING "No pre-compiled SPIR-V found: ${SPIRV_NAME}")
+            message(WARNING "glslangValidator not found - cannot compile ${SHADER_NAME}${SHADER_EXT}")
+            message(WARNING "Shader will not be available at runtime!")
+            message(WARNING "To fix: Either compile GLSL manually or install glslang")
+            message(WARNING "===============================================================================")
+        endif()
+    endif()
+endforeach()
 
-    # Create a custom target for shader compilation
+# Create custom target for shader processing
+if(SPIRV_BINARY_FILES)
     add_custom_target(shaders DEPENDS ${SPIRV_BINARY_FILES})
-else()
-    message(WARNING "glslangValidator not found - shaders must be pre-compiled manually")
 endif()
 
 add_library(usd_vk_render ${RENDER_SOURCES})

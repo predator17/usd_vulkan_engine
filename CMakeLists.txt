@@ -195,31 +195,6 @@ find_package(Threads REQUIRED)
 include(${CMAKE_SOURCE_DIR}/cmake/UsdConfig.cmake)
 
 #==============================================================================
-# Shader Compilation Configuration
-#==============================================================================
-find_program(GLSLANG_VALIDATOR glslangValidator
-    PATHS
-        "/usr/bin"
-        "/usr/local/bin"
-        "/usr/lib64/glslang"
-        "/usr/lib/glslang"
-        "$ENV{VULKAN_SDK}/Bin"
-        "/opt/VulkanSDK"
-        "$ENV{VULKAN_SDK}/x86_64/bin"
-)
-
-if(NOT GLSLANG_VALIDATOR)
-    message(WARNING "===============================================================================")
-    message(WARNING "glslangValidator not found!")
-    message(WARNING "Shaders will not be compiled automatically.")
-    message(WARNING "Install with: sudo dnf install glslang")
-    message(WARNING "Or set VULKAN_SDK environment variable")
-    message(WARNING "===============================================================================")
-else()
-    message(STATUS "Found glslangValidator: ${GLSLANG_VALIDATOR}")
-endif()
-
-#==============================================================================
 # Project Subdirectories
 #==============================================================================
 add_subdirectory(src)
