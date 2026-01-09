@@ -4,23 +4,12 @@
 build/
 .cmake/
 cmake-build-debug*/
-out/
-cmake-out*/
 
-# CPM.cmake cache directory
+#==============================================================================
+# CPM.cmake (dependency manager)
+#==============================================================================
 .cpm-cache/
-
-# External build directories (legacy)
-external/build/
-external/CMakeFiles/
-
-# CMake generated files in source directories
-src/*/CMakeFiles/
-tests/CMakeFiles/
-CMakeFiles/
-
-# Shader output directory at root (shaders are in src/shaders/)
-shaders/
+cpm-sources/
 
 #==============================================================================
 # CMake Generated Files
@@ -28,99 +17,39 @@ shaders/
 CMakeCache.txt
 cmake_install.cmake
 cmake_check_install.cmake
-compile_commands.json
 CTestTestfile.cmake
+compile_commands.json
 _deps/
-Makefile*
 
 #==============================================================================
-# OpenUSD Directory Structure
+# OpenUSD (built from source)
 #==============================================================================
-# Source archives (ignore - downloaded by script)
 OpenUSD/src/
-
-# Build directory (remove)
 OpenUSD/build/
-
-# Install directory (remove - built from source)
 OpenUSD/install/
 
 #==============================================================================
-# CPM Sources Directory (downloaded by script)
+# Compiled Objects
 #==============================================================================
-cpm-sources/
-
-#==============================================================================
-# Compiled Binaries and Objects
-#==============================================================================
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-*.lib
-*.a
 *.o
 *.obj
+*.a
+*.lib
 *.so
 *.dylib
 *.dll
+*.exe
 
 #==============================================================================
-# IDE Specific
+# IDE
 #==============================================================================
-.claude/
 .vscode/
 .idea/
+.claude/
+.clangd/
 *.swp
 *.swo
 *~
-.project
-.classpath
-.cproject
-.settings/
-.metadata/
-*.autosave
-*.qmlc
-*.jsc
-*.user
-*.pro.user
-*.qmlproject.user
-*.workspace
-
-# clangd
-.clangd/
-.cache/
-
-#==============================================================================
-# Python
-#==============================================================================
-__pycache__/
-*.py[cod]
-*$py.class
-.Python
-venv/
-env/
-ENV/
-
-#==============================================================================
-# Legacy External Directory (being phased out)
-#==============================================================================
-external/USD/install/
-external/USD/OpenUSD-src/
-# Keep: external/USD/*.tar.gz (source archives)
-
-#==============================================================================
-# Log Files
-#==============================================================================
-*.log
-external/latest
-
-#==============================================================================
-# Archive Files at Root
-#==============================================================================
-*.zip
 
 #==============================================================================
 # OS Specific
@@ -133,3 +62,7 @@ external/latest
 ehthumbs.db
 Thumbs.db
 
+#==============================================================================
+# Logs
+#==============================================================================
+*.log
