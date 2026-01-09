@@ -88,7 +88,7 @@ tar -xzf src/OpenUSD-25.11.tar.gz --strip-components=1 -C build/
 mkdir -p bld && cd bld
 cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
-  -DPXR_BUILD_USD_USDA=ON \
+  -DPXR_BUILD_USD_USDA=OFF \
   -DPXR_BUILD_USD_USDC=ON \
   -DPXR_ENABLE_PYTHON_SUPPORT=OFF \
   -DPXR_BUILD_IMAGING=OFF \
@@ -96,10 +96,17 @@ cmake .. \
   -DPXR_BUILD_USDRENDERER=OFF \
   -DPXR_BUILD_TESTS=OFF \
   -DPXR_BUILD_EXAMPLES=OFF \
+  -DPXR_BUILD_MATERIALX_ADAPTER_PLUGIN=OFF \
   -DCMAKE_INSTALL_PREFIX=../install
 make -j$(nproc)
 make install
 ```
+
+> **Note for WSL2/Linux**: If cmake fails with missing Wayland/X11 dependencies:
+> ```bash
+> sudo dnf install wayland-devel libxkbcommon-devel libX11-devel libXext-devel
+> ```
+> Or use the minimal config above which disables all GUI components (usda=OFF).
 
 ### Build
 
