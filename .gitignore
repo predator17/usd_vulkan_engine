@@ -4,6 +4,8 @@
 build/
 .cmake/
 cmake-build-debug*/
+cmake-build-release*/
+.claude/
 
 #==============================================================================
 # CPM.cmake (dependency manager)
