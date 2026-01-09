@@ -47,7 +47,7 @@ file(GLOB GLSL_SHADERS
 foreach(GLSL ${GLSL_SHADERS})
     get_filename_component(SHADER_NAME ${GLSL} NAME_WE)
     get_filename_component(SHADER_EXT ${GLSL} EXT)
-    set(SPIRV_NAME "${SHADER_NAME}${SHADER_EXT}.spv"
+    set(SPIRV_NAME "${SHADER_NAME}${SHADER_EXT}.spv")
 
     # Check if pre-compiled SPIR-V exists in source directory
     set(PRECOMPILED_SPIRV "${SHADER_SOURCE_DIR}/${SPIRV_NAME}")
