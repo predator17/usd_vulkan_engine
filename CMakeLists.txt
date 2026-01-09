@@ -60,71 +60,9 @@ if(glm_ADDED)
     message(STATUS "GLM v${glm_VERSION} via CPM")
 endif()
 
-# Dear ImGui v1.92.2 - Immediate mode GUI (stable release)
-CPMAddPackage(
-    NAME imgui
-    GITHUB_REPOSITORY ocornut/imgui
-    VERSION 1.92.2
-)
-if(imgui_ADDED)
-    # Create static library target for Dear ImGui with backends
-    if(NOT TARGET imgui)
-        add_library(imgui STATIC
-            ${imgui_SOURCE_DIR}/imgui.cpp
-            ${imgui_SOURCE_DIR}/imgui_demo.cpp
-            ${imgui_SOURCE_DIR}/imgui_draw.cpp
-            ${imgui_SOURCE_DIR}/imgui_tables.cpp
-            ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
-        )
-        target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
-        target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
-        message(STATUS "Dear ImGui v${imgui_VERSION} via CPM")
-    endif()
-    # Export imgui source directory for ImGuiFileDialog
-    set(IMGUI_ROOT_DIR ${imgui_SOURCE_DIR} CACHE PATH "ImGui root directory" FORCE)
-endif()
-
-# spdlog v1.16.0 - Logging library
-CPMAddPackage(
-    NAME spdlog
-    GITHUB_REPOSITORY gabime/spdlog
-    VERSION 1.16.0
-    OPTIONS "SPDLOG_BUILD_SHARED OFF" "SPDLOG_BUILD_TESTS OFF" "SPDLOG_INSTALL OFF"
-)
-if(spdlog_ADDED)
-    message(STATUS "spdlog v${spdlog_VERSION} via CPM")
-endif()
-
-# ImGuiFileDialog v0.6.7 - File dialog for ImGui
-CPMAddPackage(
-    NAME ImGuiFileDialog
-    GITHUB_REPOSITORY aiekick/ImGuiFileDialog
-    VERSION 0.6.7
-)
-if(ImGuiFileDialog_ADDED)
-    message(STATUS "ImGuiFileDialog v${ImGuiFileDialog_VERSION} via CPM")
-    # ImGuiFileDialog needs to find imgui.h - add include directory
-    if(TARGET ImGuiFileDialog)
-        if(imgui_ADDED)
-            target_include_directories(ImGuiFileDialog PRIVATE ${imgui_SOURCE_DIR})
-            message(STATUS "  Added imgui include dir to ImGuiFileDialog")
-        endif()
-    endif()
-endif()
-
-# GLFW v3.4 - Window/input library (via CPM for self-contained builds)
-# Note: GLFW tags don't use 'v' prefix, use GIT_TAG directly
-CPMAddPackage(
-    NAME glfw
-    GITHUB_REPOSITORY glfw/glfw
-    GIT_TAG 3.4
-    OPTIONS "GLFW_BUILD_TESTS OFF" "GLFW_BUILD_DOCS OFF" "GLFW_BUILD_EXAMPLES OFF"
-)
-if(glfw_ADDED)
-    message(STATUS "GLFW v${glfw_VERSION} via CPM")
-endif()
+#==============================================================================
+# Vulkan Setup (must be before ImGui which links against it)
+#==============================================================================
 
 # Vulkan-Headers v1.4.337 - Vulkan C API headers (via CPM)
 CPMAddPackage(
@@ -173,7 +111,81 @@ elseif(vulkan-headers_ADDED AND vulkan-hpp_ADDED)
     message(STATUS "Vulkan v${vulkan-headers_VERSION} (headers only) via CPM")
     message(STATUS "  Note: Vulkan loader (libvulkan.so/vulkan-1.dll) must be provided by graphics driver")
 else()
-    message(WARNING "Vulkan headers not found via CPM or FindVulkan")
+    message(FATAL_ERROR "Vulkan headers not found via CPM or FindVulkan. Please run: ./scripts/download_dependencies.sh")
+endif()
+
+#==============================================================================
+# Windowing (GLFW)
+#==============================================================================
+
+# GLFW v3.4 - Window/input library (via CPM for self-contained builds)
+# Note: GLFW tags don't use 'v' prefix, use GIT_TAG directly
+CPMAddPackage(
+    NAME glfw
+    GITHUB_REPOSITORY glfw/glfw
+    GIT_TAG 3.4
+    OPTIONS "GLFW_BUILD_TESTS OFF" "GLFW_BUILD_DOCS OFF" "GLFW_BUILD_EXAMPLES OFF"
+)
+if(glfw_ADDED)
+    message(STATUS "GLFW v${glfw_VERSION} via CPM")
+endif()
+
+#==============================================================================
+# UI Libraries (depend on Vulkan + GLFW)
+#==============================================================================
+
+# Dear ImGui v1.92.2 - Immediate mode GUI (stable release)
+CPMAddPackage(
+    NAME imgui
+    GITHUB_REPOSITORY ocornut/imgui
+    VERSION 1.92.2
+)
+if(imgui_ADDED)
+    # Create static library target for Dear ImGui with backends
+    if(NOT TARGET imgui)
+        add_library(imgui STATIC
+            ${imgui_SOURCE_DIR}/imgui.cpp
+            ${imgui_SOURCE_DIR}/imgui_demo.cpp
+            ${imgui_SOURCE_DIR}/imgui_draw.cpp
+            ${imgui_SOURCE_DIR}/imgui_tables.cpp
+            ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+        )
+        target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+        target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
+        message(STATUS "Dear ImGui v${imgui_VERSION} via CPM")
+    endif()
+    # Export imgui source directory for ImGuiFileDialog
+    set(IMGUI_ROOT_DIR ${imgui_SOURCE_DIR} CACHE PATH "ImGui root directory" FORCE)
+endif()
+
+# ImGuiFileDialog v0.6.7 - File dialog for ImGui
+CPMAddPackage(
+    NAME ImGuiFileDialog
+    GITHUB_REPOSITORY aiekick/ImGuiFileDialog
+    VERSION 0.6.7
+)
+if(ImGuiFileDialog_ADDED)
+    message(STATUS "ImGuiFileDialog v${ImGuiFileDialog_VERSION} via CPM")
+    # ImGuiFileDialog needs to find imgui.h - add include directory
+    if(TARGET ImGuiFileDialog)
+        if(imgui_ADDED)
+            target_include_directories(ImGuiFileDialog PRIVATE ${imgui_SOURCE_DIR})
+            message(STATUS "  Added imgui include dir to ImGuiFileDialog")
+        endif()
+    endif()
+endif()
+
+# spdlog v1.16.0 - Logging library
+CPMAddPackage(
+    NAME spdlog
+    GITHUB_REPOSITORY gabime/spdlog
+    VERSION 1.16.0
+    OPTIONS "SPDLOG_BUILD_SHARED OFF" "SPDLOG_BUILD_TESTS OFF" "SPDLOG_INSTALL OFF"
+)
+if(spdlog_ADDED)
+    message(STATUS "spdlog v${spdlog_VERSION} via CPM")
 endif()
 
 # Threads (always required)
