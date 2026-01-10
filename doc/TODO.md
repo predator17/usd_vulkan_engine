@@ -44,7 +44,7 @@ is not implemented - it just logs an error and returns false. The fallback
 - `data/spinning_cube.usda` - Simple test case
 
 **USD API Examples**:
-```cpp
+```c++
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/xformable.h>

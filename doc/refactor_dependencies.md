@@ -202,7 +202,7 @@ external/CMakeLists.txt    # No longer needed
 
 Catch2 v3 is **NOT** a single-header library anymore. Key changes:
 
-```cpp
+```c++
 // ❌ OLD (v2.x)
 #include "catch2/catch.hpp"
 
@@ -644,7 +644,7 @@ The actual Vulkan **loader** (shared library) must still be available on the sys
 
 All test files need to be updated from Catch2 v2 to v3:
 
-```cpp
+```c++
 // ❌ OLD
 #include "catch2/catch.hpp"
 
@@ -1056,7 +1056,7 @@ echo "Please verify the application runs correctly before cleanup."
 
 ### Catch2 v2 → v3 Include Changes
 
-```cpp
+```c++
 // OLD (v2.x) - REMOVE
 // #include "catch2/catch.hpp"
 
@@ -1070,7 +1070,7 @@ echo "Please verify the application runs correctly before cleanup."
 
 ### MAIN.CPP Changes
 
-```cpp
+```c++
 // OLD (v2.x)
 #define CATCH_CONFIG_MAIN
 #include "catch2/catch.hpp"
