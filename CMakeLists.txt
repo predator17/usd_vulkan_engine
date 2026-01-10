@@ -151,6 +151,10 @@ CPMAddPackage(
 )
 if(glfw_ADDED)
     message(STATUS "GLFW v${glfw_VERSION} via CPM")
+    # IMPORTANT: Prevent GLFW from including OpenGL headers (Vulkan-only build)
+    # Without this, glfw3.h automatically includes <GL/gl.h> which fails compilation
+    # on systems without OpenGL development packages installed
+    target_compile_definitions(glfw PUBLIC GLFW_INCLUDE_NONE)
 endif()
 
 #==============================================================================
