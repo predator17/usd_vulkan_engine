@@ -29,6 +29,7 @@ A C++20 real-time USD (Universal Scene Description) viewer built with Vulkan ren
 
 ### Partially Implemented
 - ⚠️ USD scene file loading (API ready, parser uses hardcoded demo)
+- ⚠️ Currently only works on WSL2 Rocky Linux 10 under native Windows11, native Windows 11 support is in progress.
 
 ## Quick Start
 
@@ -44,9 +45,17 @@ A C++20 real-time USD (Universal Scene Description) viewer built with Vulkan ren
 > by the setup scripts. No system packages are required except for a C++20 compiler
 > and CMake. The Vulkan loader from your graphics driver is required at runtime.
 
+
+
 ### Initial Setup (First Time Only)
 
-The setup process consists of two steps:
+The setup process consists of following steps:
+
+**Step 0 (for Windows 11 WSL2 only)**
+install the system dependencies:
+```bash
+sudo dnf install tbb-devel libX11-devel libXext-devel libXcursor-devel libXrandr-devel libXinerama-devel libXi-devel libXrender-devel libxkbcommon-devel wayland-devel 
+```
 
 **Step 1: Download CPM dependencies**
 ```bash
@@ -104,7 +113,6 @@ For backward compatibility, symlinks are created:
 cd usd_vulkan_engine
 
 # Configure with CMake (uses cached dependencies)
-HTTP_PROXY=http://127.0.0.1:8118 HTTPS_PROXY=http://127.0.0.1:8118 \
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 
 # Build
@@ -113,9 +121,6 @@ cd build && make -j$(nproc)
 # Run the engine
 LD_LIBRARY_PATH=../OpenUSD/install/lib:$LD_LIBRARY_PATH ./src/app/usd_vulkan_engine
 ```
-
-> **Note:** Set `HTTP_PROXY` and `HTTPS_PROXY` as shown if behind a proxy.
-> For WSL2, use port 10808. For native Linux, use port 8118.
 
 ### Build Options
 
