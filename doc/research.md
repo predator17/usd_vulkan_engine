@@ -35,36 +35,54 @@ Based on analysis of Principal Graphics Engineer positions at industry-leading c
 | **Build Systems** | CMake, Bazel, shader compilation pipelines |
 | **Leadership** | Technical direction, mentoring, architecture decisions |
 
-### Salary Ranges (2024-2025)
-- **Senior Graphics Engineer**: $150,000 - $200,000
-- **Principal Graphics Engineer**: $200,000 - $280,000
-- **Technical Director/Architect**: $250,000 - $350,000+
+---
 
-### Key Responsibilities
+---
 
-1. **Graphics Systems Architecture**
-   - Design and implement rendering architectures
-   - Define abstractions for multi-platform support
-   - Balance performance vs. maintainability
-   - Guide technical vision for 3-5 year horizons
-
-2. **Performance Optimization**
-   - Profile and optimize GPU/CPU bottlenecks
-   - Implement GPU-driven rendering pipelines
-   - Optimize memory allocation strategies
-   - Reduce draw calls and state changes
-
-3. **Team Leadership**
-   - Mentor junior and senior engineers
-   - Conduct code reviews and architecture reviews
-   - Drive technical standards and best practices
-   - Collaborate across disciplines (art, design, production)
+> **BEGINNER FRIENDLY INTRODUCTION**
+>
+> Welcome! If you're new to graphics programming, all these technical terms might seem overwhelming. Don't worry - this document is designed as a complete reference, and you don't need to understand everything at once.
+>
+> **Think of it this way:**
+> - **Graphics APIs** (like Vulkan) are like the "language" your computer uses to talk to the graphics card (GPU)
+> - **Shading Languages** are like special programs that tell the GPU how to draw each pixel
+> - **Math & Physics** are the tools we use to calculate where objects should appear on screen
+> - **Engine Architecture** is like the blueprint for how a game or graphics application is organized
+>
+> Start by reading the **Architecture Visualizations** below to get a visual overview of how everything connects!
 
 ---
 
 # Architecture Visualizations
 
+> **🌟 For Beginners:** This section contains diagrams that show how different parts of a graphics engine connect. Think of these like "road maps" or "blueprints" of how the software works!
+>
+> **How to read these diagrams:**
+> - Each box represents a component or concept
+> - Arrows show how things connect or flow
+> - Different colors group related things together
+> - Start from the top and follow the arrows down
+
 This section provides comprehensive Mermaid diagram visualizations for the technical concepts covered in this document.
+
+---
+
+## 0. What Are All These Graphics Terms?
+
+Before diving into the visualizations, here's a quick primer:
+
+| Term | What It Means | Real-World Example |
+|------|---------------|---------------------|
+| **Vulkan** | A graphics API (language for talking to GPU) | Like giving orders to a painter |
+| **USD** | Universal Scene Description (3D file format) | Like a `.doc` file but for 3D scenes |
+| **Ray Tracing** | Simulating light rays for realistic graphics | How actual light and reflections work |
+| **Shader** | Program that runs on GPU to color pixels | Each pixel's "coloring instructions" |
+| **Geometry** | 3D shapes (triangles, meshes) | The wireframe of a 3D model |
+| **Texture** | Images wrapped around 3D objects | Wallpaper on a wall |
+| **Pipeline** | Sequence of operations to render a frame | Assembly line in a factory |
+| **Descriptor** | Handle to GPU resources (textures, buffers) | Index card cataloging resources |
+
+---
 
 ## 1. Principal Graphics Engineer Skill Tree
 
@@ -150,18 +168,19 @@ mindmap
 
 ## 2. USD Composition Arcs Strength Ordering
 
+**LIVRPS** acronym (strongest to weakest): **L**ocal, **I**nherits, **V**ariant sets, **R**eferences, **P**ayloads, **S**pecializes
+
 ```mermaid
 graph TD
-    subgraph Composition_Strength_Order["USD Composition Arcs: Strongest to Weakest"]
+    subgraph Composition_Strength_Order["USD Composition Arcs LIVRPS: Strongest to Weakest"]
         A[Session Layer<br/>Current edit session]:::strongest
-        B[Stage Root Layer<br/>Primary layer]:::strong
-        C[SubLayers<br/>Layer stack - last is strongest]:::mediumStrong
-        D[Payloads<br/>Deferred references]:::medium
+        B[Local / SubLayers<br/>Layer stack - last is strongest]:::strong
+        C[Inherits<br/>Property inheritance]:::mediumStrong
+        D[Variant Sets<br/>Variant selection]:::medium
         E[References<br/>Asset inclusion]:::mediumWeak
-        F[Variant Selections<br/>Chosen variant]:::weak
-        G[Inherits<br/>Persistent relationships]:::weaker
-        H[Specializes<br/>Specialized refinements]:::weakest
-        I[Fallback Values<br/>Authored defaults]:::fallback
+        F[Payloads<br/>Deferred load]:::weak
+        G[Specializes<br/>Specialized refinements]:::weaker
+        H[Fallback Values<br/>Authored defaults]:::weakest
 
         A --> B
         B --> C
@@ -170,7 +189,6 @@ graph TD
         E --> F
         F --> G
         G --> H
-        H --> I
     end
 
     classDef strongest fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
@@ -180,9 +198,10 @@ graph TD
     classDef mediumWeak fill:#228be6,stroke:#1c7ed6,stroke-width:2px,color:#fff
     classDef weak fill:#748ffc,stroke:#5c7cfa,stroke-width:2px,color:#fff
     classDef weaker fill:#845ef7,stroke:#7950f2,stroke-width:2px,color:#fff
-    classDef weakest fill:#d6336c,stroke:#a61e4d,stroke-width:2px,color:#fff
-    classDef fallback fill:#adb5bd,stroke:#868e96,stroke-width:2px,color:#000
+    classDef weakest fill:#adb5bd,stroke:#868e96,stroke-width:2px,color:#000
 ```
+
+> **Note**: The Session Layer (current edit session) is stronger than all Local layers and is typically used for interactive edits that should not be persisted.
 
 ## 3. USD Layer Composition Example
 
@@ -1642,6 +1661,23 @@ Vulkan is a next-generation graphics and compute API that provides:
 ---
 
 ## 2. Vulkan Pipeline Stages
+
+> **🌟 Beginner's Guide to the Graphics Pipeline**
+>
+> Think of the graphics pipeline like an **assembly line** in a factory that makes pictures. Each step does something specific to turn your 3D world into pixels on the screen.
+>
+> ```
+> 3D World (vertices, triangles)  →  [PIPELINE]  →  2D Picture (colored pixels)
+>                                            ↓
+>                                     YOUR SCREEN!
+> ```
+>
+> **The Pipeline Steps (Simplified):**
+> 1. **Input**: Your program says "draw this cube at position (x,y,z)"
+> 2. **Vertex Shader**: Calculate where each corner of the cube should be on screen
+> 3. **Rasterization**: Turn the triangle into individual pixels
+> 4. **Fragment Shader**: Decide what color each pixel should be
+> 5. **Output**: Put the colored pixels on the screen!
 
 ### Graphics Pipeline Stages (in order)
 
@@ -8059,3 +8095,157 @@ Unreal Engine Vulkan RHI supports:
 ---
 
 *Document compiled for USD Vulkan Engine project development reference.*
+
+---
+
+## 📖 Beginner's Glossary for Graphics Programming
+
+> **Welcome, curious learner!** This glossary explains all the scary technical terms in simple language. Don't worry if you don't understand everything at once - even experienced programmers look things up!
+
+### Graphics & Rendering Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **3D Graphics** | Creating images that look like they have depth (like real 3D objects) |
+| **Aliasing** | Jagged edges on diagonal lines (like stairs on a smooth slope) |
+| **Anti-aliasing** | Smoothing out those jagged edges |
+| **Aspect Ratio** | Width vs Height (16:9 is widescreen, 4:3 is square-ish) |
+| **Backface Culling** | Not drawing the "back" of objects (saves time!) |
+| **Bloom** | Glowing effect around bright things (like streetlights at night) |
+| **Bounding Box** | An invisible box that wraps around an object |
+| **Buffer** | Memory that holds data (like a bucket that holds water) |
+| **Clipping** | Cutting off things outside the visible area |
+| **Depth Buffer** | Stores how far each pixel is (used for 3D depth) |
+| **Field of View (FOV)** | How wide the camera can see (human eye ≈ 60°) |
+| **Fragment** | A single pixel being drawn |
+| **Frame** | One complete image (60 FPS = 60 images per second) |
+| **Frame Buffer** | Memory that holds one frame of the image |
+| **Geometry** | The 3D shapes (triangles, meshes, etc.) |
+| **HDR** | High Dynamic Range - more colors than normal screens can show |
+| **Hybrid Rendering** | Using both rasterization and ray tracing |
+| **Latency** | Delay between input and response (lower is better!) |
+| **Mesh** | A 3D shape made of triangles |
+| **Mipmaps** | Smaller versions of textures for far-away objects |
+| **Occlusion** | When something is blocked by something else |
+| **Polygon** | A shape with straight sides (triangles, quads) |
+| **Rasterization** | Turning 3D shapes into actual pixels |
+| **Ray Tracing** | Simulating light rays for realistic reflections/shadows |
+| **Render Target** | A texture that you draw to (off-screen) |
+| **Resolution** | How many pixels (1920x1080 = Full HD) |
+| **Sampler** | Settings for how to read from a texture |
+| **Shader** | A program that runs on the GPU to color pixels |
+| **Stencil Buffer** | Like a mask for certain pixels |
+| **Tessellation** | Adding more detail to shapes |
+| **Texture** | An image wrapped around a 3D object |
+| **Triangle** | Three points connected - the basic 3D building block |
+| **Vertex** | A corner point of a 3D shape |
+| **Viewport** | The area on screen where drawing happens |
+| **V-Sync** | Synchronizing with monitor refresh rate (prevents tearing) |
+
+### Vulkan-Specific Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Command Buffer** | A list of drawing commands recorded ahead of time |
+| **Descriptor** | A handle that points to textures/buffers |
+| **Descriptor Set** | A collection of descriptors (like a folder of handles) |
+| **Dispatch** | Starting a compute shader operation |
+| **Fence** | A way for CPU to wait for GPU to finish |
+| **Framebuffer** | Where the rendered image goes |
+| **Instance** | One Vulkan connection to the GPU |
+| **Layout** | How memory is arranged (like organizing a closet) |
+| **Physical Device** | The actual GPU hardware |
+| **Pipeline** | All the settings for how to draw something |
+| **Queue** | A line of commands waiting to execute on GPU |
+| **Render Pass** | A complete drawing operation with attachments |
+| **Semaphore** | A signal that says "I'm done" (for GPU-CPU sync) |
+| **Swap Chain** | Chain of images for displaying (prevents tearing) |
+| **Validation Layer** | A debugging tool that catches mistakes |
+| **Vertex Input** | Describing what format vertices are in |
+
+### USD-Specific Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Composition Arc** | A way to combine multiple layers/files into one scene |
+| **Layer** | A single USD file (like a single Photoshop layer) |
+| **Payload** | A lazy-loaded reference (loads only when needed) |
+| **Prim** | Short for "Primitive" - a basic scene element |
+| **Reference** | Including another file into your scene |
+| **SubLayer** | One layer stacked on top of another |
+| **Variant** | Different options for one object (like blue shirt vs red) |
+| **Stage** | The entire loaded USD scene (all layers combined) |
+| **Attribute** | Data attached to a prim (position, color, etc.) |
+| **Property** | Same as attribute - data on a prim |
+| **SdfPath** | A unique address for something in USD (like a file path) |
+
+### Shading & Math Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Blinn-Phong** | A lighting model (how things look shiny) |
+| **BRDF** | Bidirectional Reflectance Distribution Function (how light bounces) |
+| **Bump Map** | Fake bumps on a smooth surface |
+| **Diffuse** | Non-shiny reflection (like matte paint) |
+| **Glossy** | Shiny surface (like plastic or metal) |
+| **Irradiance** | Incoming light energy |
+| **Luminance** | How bright something appears |
+| **Normal Map** | Adds fake detail to surfaces without more triangles |
+| **PBR** | Physically Based Rendering (realistic materials) |
+| **Roughness** | How bumpy/shiny a surface is |
+| **Specular** | The shiny highlight on objects |
+| **UV Coordinates** | How a texture wraps around a 3D object |
+| **Vertex Shader** | Program that processes each vertex |
+| **Fragment Shader** | Program that colors each pixel |
+
+### Common Acronyms Decoded
+
+| Acronym | Stands For | Simple Meaning |
+|---------|-----------|---------------|
+| **ACES** | Academy Color Encoding System | Movie-industry color standard |
+| **API** | Application Programming Interface | Commands you give to software |
+| **BRDF** | Bidirectional Reflectance Distribution Function | How light bounces off surfaces |
+| **CPU** | Central Processing Unit | Computer's "brain" |
+| **DSL** | Domain Specific Language | A programming language for one specific use |
+| **FPS** | Frames Per Second | How smooth animation is |
+| **FOV** | Field of View | How much the camera sees |
+| **FSR** | FidelityFX Super Resolution | AMD's image upscaling |
+| **GI** | Global Illumination | Realistic lighting with light bounces |
+| **GPU** | Graphics Processing Unit | Graphics "calculator" chip |
+| **HDR** | High Dynamic Range | More colors than normal screens |
+| **HLSL** | High Level Shading Language | DirectX shader language |
+| **LDR** | Low Dynamic Range | Normal screen colors |
+| **NDC** | Normalized Device Coordinates | Screen space (-1 to +1) |
+| **PBR** | Physically Based Rendering | Realistic material rendering |
+| **RGB** | Red, Green, Blue | Primary colors of light |
+| **RT** | Ray Tracing | Realistic light simulation |
+| **RTX** | Ray Tracing (NVIDIA branding) | NVIDIA's RT hardware |
+| **SSAO** | Screen Space Ambient Occlusion | Shadows in corners |
+| **SSR** | Screen Space Reflections | Reflections from screen |
+| **TAA** | Temporal Anti-Aliasing | Anti-aliasing using past frames |
+| **TBN** | Tangent-Bitangent-Normal | For normal mapping |
+| **UV** | Texture Coordinates | How textures wrap on objects |
+| **V-Sync** | Vertical Sync | Sync with monitor refresh |
+| **VMA** | Vulkan Memory Allocator | Helps manage GPU memory |
+
+### The "Big Three" Graphics APIs
+
+| API | Who Makes It | Where Used | Key Feature |
+|-----|-------------|------------|-------------|
+| **Vulkan** | Khronos Group | Cross-platform (PC, Android, Linux) | Maximum control, modern |
+| **DirectX 12** | Microsoft | Windows and Xbox | Windows-focused, mature tools |
+| **Metal** | Apple | macOS, iOS, visionOS | Apple-optimized, efficient |
+
+### Learning Path for Absolute Beginners
+
+If you're completely new to graphics programming, here's a suggested order:
+
+1. **Start with basic C++** - Learn variables, functions, classes
+2. **Learn 2D graphics first** - Draw lines, circles, images
+3. **Understand the math** - Vectors (arrows), Matrices (grids of numbers)
+4. **Learn OpenGL first** (easier than Vulkan!) - Get the basics down
+5. **Move to Vulkan** - You'll appreciate WHY it's so explicit
+6. **Experiment with shaders** - Write GLSL, see immediate results
+7. **Study USD** - Learn how to organize complex 3D scenes
+
+> **Remember:** Every graphics programmer started where you are now. The key is curiosity and persistence. Don't be afraid to experiment - you can't break the computer by writing code!

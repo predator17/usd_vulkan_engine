@@ -4,13 +4,87 @@
 
 ---
 
+## 📚 Beginner's Guide: Start Here!
+
+> **Are you new to programming or graphics?** This section will help you understand the basics before diving into the advanced topics below.
+
+### What is This Document About?
+
+This document teaches you how programmers create video games, 3D animations, and graphics applications. It covers:
+- **C++ Programming**: A powerful computer language used for building fast, efficient software
+- **Vulkan**: A modern graphics API that lets programs control the graphics card (GPU) directly
+- **USD (Universal Scene Description)**: A system for describing 3D scenes, used by Pixar and movie studios
+- **Mathematics**: The math behind 3D graphics (vectors, matrices, etc.)
+
+### Basic Concepts You Should Know
+
+#### What is a GPU?
+
+**GPU** stands for **Graphics Processing Unit**. Think of it as a super-powered calculator that's really good at doing many calculations at once.
+
+```
+CPU (Regular Processor)          GPU (Graphics Processor)
+┌─────────────────┐              ┌──────────────────────────┐
+│ Good at:        │              │ Good at:                 │
+│ - One thing at  │              │ - Thousands of things    │
+│   a time        │              │   at once                │
+│ - Complex logic │              │ - Simple math            │
+│ - Decision making│             │ - Drawing pixels         │
+└─────────────────┘              └──────────────────────────┘
+```
+
+**Real-world analogy:**
+- A **CPU** is like a genius professor who can solve complex problems but works on one thing at a time
+- A **GPU** is like 1,000 elementary school students who can only do simple math, but all work simultaneously!
+
+#### What is Vulkan?
+
+**Vulkan** is like a "remote control" for your graphics card. It gives programmers very precise control over how the GPU draws images.
+
+```
+Your Program (C++)  →  Vulkan API  →  Graphics Card (GPU)  →  Your Monitor
+   "Draw a cube!"        "OK, sending    "Calculating        "Pixels on
+                         commands..."    millions of         screen!"
+                                         pixels..."
+```
+
+**Why is it complicated?**
+Because the GPU is so powerful, controlling it directly requires many specific instructions. It's like driving a car manually vs. using autopilot - more work, but more control!
+
+#### What is USD?
+
+**USD** stands for **Universal Scene Description**. It's like a "file format" for 3D scenes that different software can share.
+
+```
+Pixar's "Toy Story" Scene:
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Modeling   │  →  │    USD      │  →  │  Animation  │
+│  Software   │     │    File     │     │  Software   │
+│  (Make Woody)│     │  (woody.usd)│     │  (Animate)  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+Think of USD like a **universal adapter** that lets different 3D programs talk to each other!
+
+#### What is C++?
+
+**C++** is a programming language known for being:
+- **Fast**: Programs run very quickly
+- **Powerful**: You control exactly how the computer works
+- **Popular**: Used in games, browsers, and even space probes!
+
+**Why C++ for graphics?**
+Because when you're drawing millions of pixels every second, every microsecond counts!
+
+---
+
 ## Table of Contents
 
 1. [Modern C++ Techniques](#1-modern-c-techniques)
 2. [Design Patterns](#2-design-patterns)
 3. [Graphics-Specific Patterns](#3-graphics-specific-patterns)
 4. [Algorithms](#4-algorithms)
-5. [Mathematics](#5-mathematics)
+5. [Mathematics](#5-mathematics-for-computer-graphics)
 6. [Memory Management](#6-memory-management)
 7. [Multi-threading & Synchronization](#7-multi-threading--synchronization)
 8. [Performance Optimization](#8-performance-optimization)
@@ -18,6 +92,28 @@
 ---
 
 ## 1. Modern C++ Techniques
+
+> **🌟 Beginner Tip:** Think of "C++ Techniques" like cooking techniques. Just as a chef knows different ways to chop, boil, and fry ingredients, a C++ programmer knows different ways to organize and move data around in the computer!
+
+### Key Concepts Before We Dive In
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Variable** | Like a labeled box where you store information |
+| **Function** | Like a recipe - a set of instructions that do something |
+| **Class** | Like a blueprint for creating objects |
+| **Object** | Something created from a class blueprint |
+| **Pointer** | An arrow pointing to where data lives in memory |
+| **Reference** | A nickname for an existing variable |
+
+**Move Semantics Analogy:**
+Imagine you're moving houses:
+- **Copy**: Buy a new house, copy everything from the old house, keep both houses
+- **Move**: Just change the address on the mail - much faster!
+
+In C++, "move semantics" means transferring ownership of data instead of copying it. This is much faster, just like changing an address is faster than building a new house!
+
+---
 
 ### 1.1 Move Semantics and Perfect Forwarding
 
@@ -213,9 +309,42 @@ graph TB
 
 ## 2. Design Patterns
 
+> **🌟 What are Design Patterns?**
+>
+> Think of design patterns like **recipes** that programmers have discovered over time. Just as cooks have proven recipes for making certain dishes, programmers have proven "recipes" for solving common programming problems.
+>
+> **Why use patterns?**
+> - They're tested solutions that work
+> - Other programmers will understand your code faster
+> - You avoid reinventing the wheel
+
+### Common Pattern Types (Simple Examples)
+
+| Pattern | Real-World Analogy | Graphics Use Case |
+|---------|-------------------|-------------------|
+| **Singleton** | There's only one president of a country | Only one GPU or one renderer |
+| **Factory** | A car factory makes different car types | Creates different shapes (cube, sphere) |
+| **Observer** | Magazine subscribers get new issues | Render list updates when scene changes |
+| **Command** | A TV remote stores button presses | Undo/redo for user actions |
+| **Strategy** | Different routes to get to the same place | Different rendering techniques |
+
+---
+
 ### 2.1 Gang of Four Patterns in Graphics
 
+> **History Note:** The "Gang of Four" (GoF) refers to four authors who wrote a famous 1994 book on design patterns. Their patterns are still used today!
+
 #### 2.1.1 Singleton Pattern
+
+> **🌟 Beginner Explanation:**
+>
+> Imagine a school with only one principal. No matter how many students ask, "Who's the principal?", they all get the same answer. That's a Singleton - there can only be ONE instance of it!
+>
+> **When to use it:**
+> - When you absolutely need only ONE of something (like a graphics card connection)
+> - When that one thing needs to be accessible from everywhere in your program
+
+**Example:** A Vulkan application should only create ONE connection to the GPU. Using a Singleton ensures we don't accidentally create multiple connections.
 
 ```c++
 // Vulkan instance management
@@ -1829,6 +1958,112 @@ private:
 ---
 
 ## 5. Mathematics for Computer Graphics
+
+> **🌟 Don't Panic!** Math might seem scary, but computer graphics math is actually quite visual and intuitive. Think of it as the "rules" for how to move and draw 3D objects on a 2D screen.
+
+### Why Do We Need Math for Graphics?
+
+Imagine you're drawing a simple scene:
+```
+    🌳 (tree)          ☁️ (cloud)        🏠 (house)
+       ↑                  ↑                ↑
+    How do we tell the computer where to put these?
+```
+
+We need math to answer:
+- **Where** is each object? (Position → **Vectors**)
+- **Which way** is it facing? (Rotation → **Matrices**)
+- **How big** is it? (Scale → **Matrices**)
+- **What color** should each pixel be? (Lighting → **Dot Products**)
+
+---
+
+### 5.0.1 Understanding Vectors (The Most Important Concept!)
+
+**What is a Vector?**
+
+A vector is like an arrow that has:
+- **Direction**: Which way it points
+- **Magnitude**: How long it is
+
+```
+       ↑
+       |  ← This is a vector!
+       |  It points UP and has length 3
+       |
+   ────┴─────
+```
+
+**In Computer Graphics, Vectors Represent:**
+
+| Use Case | Example |
+|----------|---------|
+| **Position** | `vec3(1, 2, 3)` = x=1, y=2, z=3 (location in 3D) |
+| **Direction** | `vec3(0, 1, 0)` = pointing straight UP |
+| **Color** | `vec3(1, 0, 0)` = RED (red=100%, green=0%, blue=0%) |
+| **Velocity** | `vec3(5, 0, 0)` = moving RIGHT at 5 units/second |
+
+**Vector Addition - Simple!**
+
+```
+    → B                → A + B
+A →       +       =        ↗
+(3,0)      (0,2)         (3,2)
+
+Think of it like: "Walk 3 steps east, then 2 steps north"
+```
+
+---
+
+### 5.0.2 Understanding Matrices (Transformations)
+
+**What is a Matrix?**
+
+A matrix is like a "machine" that transforms (changes) vectors. Think of it as a set of rules for moving things around.
+
+```
+Original Square    →    Matrix (rules)    →    Transformed Square
+┌────┐                                   ╱────╲
+│    │           "Move right &           ╱      ╲
+│    │            rotate 45°"           ╱────────╲
+└────┘                               ╱────────────╲
+```
+
+**Why Do We Need Matrices?**
+
+1. **Translation** (Move): Move an object from point A to point B
+2. **Rotation** (Turn): Rotate an object around an axis
+3. **Scale** (Resize): Make an object bigger or smaller
+
+All three can be combined into ONE matrix!
+
+```
+Model Matrix = Translation × Rotation × Scale
+     ↓
+"Put this cube at position (5,3,2), rotated 45°, at 2x size"
+```
+
+---
+
+### 5.0.3 The Graphics Pipeline (Where Math Meets Pictures)
+
+Here's how math becomes pictures on your screen:
+
+```
+3D World Coordinates
+        ↓
+    [Model Matrix]  ← "Where is the object?"
+        ↓
+    [View Matrix]   ← "Where is the camera?"
+        ↓
+[Projection Matrix] ← "How does 3D become 2D?"
+        ↓
+   Screen Coordinates (x, y pixels)
+        ↓
+   GPU draws each pixel using the math formulas below!
+```
+
+---
 
 This section covers the essential mathematics used in real-time rendering, ray tracing, and computer graphics applications. Each topic includes mathematical formulas, explanations, and C++ implementations.
 
@@ -4169,7 +4404,7 @@ graph TB
         UC1["Command buffer recording"]
         UC2["Resource streaming"]
         UC3["Frame parallelism"]
-        UC4="Job dependency graph"
+        UC4["Job dependency graph"]
     end
 
     SP1 --> UC1
@@ -4624,22 +4859,206 @@ graph TB
     style C8 fill:#8e44ad,stroke:#6c3483,color:#fff
 ```
 
+### 11.1 GPU Particle Systems
+
+Compute shaders enable massive parallelism for particle simulation by processing thousands of particles simultaneously:
+
+```glsl
+// Particle update compute shader
+layout(local_size_x = 256) in;
+
+struct Particle {
+    vec4 position;
+    vec4 velocity;
+    float lifetime;
+};
+
+layout(std430, binding = 0) buffer ParticleBuffer {
+    Particle particles[];
+};
+
+uniform float deltaTime;
+uniform uint particleCount;
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= particleCount) return;
+
+    // Update particle physics
+    particles[idx].velocity.xyz -= vec3(0.0, -9.81, 0.0) * deltaTime;
+    particles[idx].position.xyz += particles[idx].velocity.xyz * deltaTime;
+    particles[idx].lifetime -= deltaTime;
+
+    // Ground collision
+    if (particles[idx].position.y < 0.0) {
+        particles[idx].velocity.y *= -0.5;
+        particles[idx].position.y = 0.0;
+    }
+}
+```
+
+### 11.2 Indirect Rendering and GPU Culling
+
+GPU-driven rendering uses compute shaders to perform culling and populate indirect draw buffers:
+
+```glsl
+// Frustum culling compute shader
+struct DrawCommand {
+    uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    uint vertexOffset;
+    uint firstInstance;
+};
+
+struct VisibleMesh {
+    mat4 modelMatrix;
+    vec3 center;
+    float radius;
+};
+
+layout(std430, binding = 0) buffer DrawCommands {
+    DrawCommand drawCommands[];
+};
+
+layout(std430, binding = 1) readonly buffer VisibleMeshes {
+    VisibleMesh meshes[];
+};
+
+uniform Frustum {
+    vec4 planes[6];
+} frustum;
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    // Cull against frustum planes
+    bool visible = true;
+    for (int i = 0; i < 6; ++i) {
+        float distance = dot(frustum.planes[i], vec4(meshes[idx].center, 1.0));
+        if (distance < -meshes[idx].radius) {
+            visible = false;
+            break;
+        }
+    }
+    drawCommands[idx].instanceCount = visible ? 1 : 0;
+}
+```
+
+### 11.3 Bitonic Sort
+
+GPU-based sorting using the bitonic merge algorithm:
+
+```glsl
+// Bitonic sort compute shader
+layout(local_size_x = 512) in;
+
+layout(std430, binding = 0) buffer SortBuffer {
+    float data[];
+};
+
+uniform uint stage;
+uniform uint step;
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    uint partner = idx ^ step;
+
+    // Determine sort direction (ascending/descending)
+    bool ascending = ((idx & stage) == 0);
+    bool swap = (data[idx] > data[partner]);
+
+    if (swap != ascending) {
+        float temp = data[idx];
+        data[idx] = data[partner];
+        data[partner] = temp;
+    }
+}
+```
+
+### 11.4 Parallel Reduction
+
+Efficient GPU reduction for sums, minima, maxima:
+
+```glsl
+// Parallel reduction for sum
+layout(local_size_x = 256) in;
+
+shared float sharedData[256];
+
+layout(std430, binding = 0) readonly buffer Input {
+    float data[];
+};
+
+layout(std430, binding = 1) buffer Output {
+    float result[];
+};
+
+void main() {
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_WorkGroupID.x;
+
+    sharedData[lid] = data[gid * 256 + lid];
+    barrier();
+
+    // Parallel reduction tree
+    for (uint stride = 128; stride > 0; stride >>= 1) {
+        if (lid < stride) {
+            sharedData[lid] += sharedData[lid + stride];
+        }
+        barrier();
+    }
+
+    if (lid == 0) {
+        result[gid] = sharedData[0];
+    }
+}
+```
+
+### 11.5 Compute Shader Best Practices
+
+| Pattern | Workgroup Size | Memory Access | Use Case |
+|---------|---------------|---------------|----------|
+| **Embarrassingly Parallel** | 64-256 | No dependencies | Particle updates, image processing |
+| **Parallel Reduction** | 128-512 | Shared memory | Histograms, summations |
+| **Scan/Prefix Sum** | 128-256 | Shared memory | Stream compaction, radix sort |
+| **Scatter** | 64-128 | Atomic writes | Particle sorting |
+| **Gather** | 256-512 | Random reads | Lookups, sampling |
+
 ---
 
 ## 12. USD Advanced Techniques
 
 ### 12.1 Value Resolution with Composition Arcs
 
-USD uses a powerful composition system with multiple arc types:
+USD uses a powerful composition system with multiple arc types following the **LIVRPS** strength ordering (strongest to weakest):
 
-| Arc Type | Description | Strength |
-|----------|-------------|----------|
-| **SubLayer** | Weaker to stronger layer stacking | Weakest |
-| **Payload** | Lazy-loaded reference | Medium |
-| **Reference** | Read-only external composition | Medium |
-| **Inherits** | Non-composing property inheritance | Strong |
-| **Specializes** | Class-like composition | Strong |
-| **Variant** | Mutually exclusive selection | Strongest |
+| Arc Type | LIVRPS | Description | Strength |
+|----------|--------|-------------|----------|
+| **Local (SubLayers)** | **L** | Layer stack with stronger opinions on top | **Strongest** |
+| **Inherits** | **I** | Non-composing property inheritance | Strong |
+| **Variant Sets** | **V** | Mutually exclusive selection (e.g., geometry variants) | Medium |
+| **References** | **R** | Read-only external asset composition | Medium-Weak |
+| **Payloads** | **P** | Lazy-loaded reference (load/unload at runtime) | Weak |
+| **Specializes** | **S** | Class-like composition with fallback values | Weakest |
+
+> **Note:** The Session Layer (current edit session) is stronger than all Local layers.
+
+The LIVRPS acronym represents the composition operations from strongest to weakest: **L**ocal, **I**nherits, **V**ariant sets, **R**eferences, **P**ayloads, and **S**pecializes.
+
+```c++
+// Example: Composition strength demonstration
+// Given the following layer stack:
+// - shot_layer.usda (Local, strongest)
+//   - SubLayers: anim_layer.usda (stronger than base)
+//   - SubLayers: base_geo.usda (weakest sublayer)
+//   - Reference: prop.usda (weaker than Local)
+//   - Payload: env.usda (weaker than Reference)
+
+// If all layers set "size = 5.0", the shot_layer wins.
+// If shot_layer doesn't set "size", anim_layer's opinion wins.
+// If anim_layer doesn't set "size", base_geo's opinion wins.
+// And so on through LIVRPS ordering...
+```
 
 ### 12.2 USD Instancing
 
@@ -4698,18 +5117,317 @@ graph TB
 
 ### 13.1 Temporal Anti-Aliasing (TAA)
 
-TAA uses temporal history to reduce aliasing:
-- **Jitter**: Apply sub-pixel offset using Halton sequence
-- **Reproject**: Map previous frame pixels using motion vectors
-- **Blend**: Combine current frame with reprojected history
-- **Clamp**: Prevent ghosting with neighborhood clamping
+TAA uses temporal history to reduce aliasing by combining multiple sub-pixel samples over time:
+
+```glsl
+// TAA resolve shader
+layout(location = 0) in vec2 uv;
+layout(location = 0) out vec4 fragColor;
+
+uniform sampler2D currentFrame;   // Current frame HDR
+uniform sampler2D historyFrame;    // Previous resolved frame
+uniform sampler2D motionVectors;   // Screen-space motion vectors
+uniform sampler2D depthBuffer;     // Current frame depth
+
+vec2 haltonSeq[8] = vec2[](
+    vec2(0.5, 0.33333333),
+    vec2(0.25, 0.66666667),
+    vec2(0.75, 0.11111111),
+    vec2(0.125, 0.44444444),
+    vec2(0.625, 0.77777778),
+    vec2(0.375, 0.22222222),
+    vec2(0.875, 0.55555556),
+    vec2(0.0625, 0.88888889)
+);
+
+uniform int frameIndex;
+uniform vec2 resolution;
+
+void main() {
+    // Apply jitter offset for current sample
+    vec2 jitter = haltonSeq[frameIndex % 8];
+    vec2 jitteredUV = uv + (jitter - 0.5) / resolution;
+
+    // Sample current color and motion vector
+    vec3 currentColor = texture(currentFrame, jitteredUV).rgb;
+    vec2 motion = texture(motionVectors, uv).rg;
+
+    // Reproject to find previous frame UV
+    vec2 prevUV = uv - motion;
+    vec3 historyColor = texture(historyFrame, prevUV).rgb;
+
+    // Neighborhood clamping to prevent ghosting
+    vec3 minColor = vec3(1e6), maxColor = vec3(-1e6);
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            vec3 sampleColor = texture(currentFrame, uv + vec2(x, y) / resolution).rgb;
+            minColor = min(minColor, sampleColor);
+            maxColor = max(maxColor, sampleColor);
+        }
+    }
+
+    // Clamp history to neighborhood bounding box
+    historyColor = clamp(historyColor, minColor, maxColor);
+
+    // Blend factor based on velocity and disocclusion
+    float blendFactor = 0.9;  // 90% history, 10% current
+    if (prevUV.x < 0.0 || prevUV.x > 1.0 || prevUV.y < 0.0 || prevUV.y > 1.0) {
+        blendFactor = 0.0;  // Out of bounds - use current only
+    }
+
+    fragColor = vec4(mix(currentColor, historyColor, blendFactor), 1.0);
+}
+```
+
+**TAA Pipeline:**
+1. **Jitter**: Apply sub-pixel offset using Halton sequence during projection
+2. **Motion Vectors**: Render per-pixel motion vectors (current → previous NDC)
+3. **Reproject**: Map previous frame pixels using motion vectors
+4. **Neighborhood Clamp**: Prevent ghosting by clamping to 3x3 neighborhood
+5. **Blend**: Combine current frame with reprojected history (typically 90/10)
 
 ### 13.2 Screen Space Reflections (SSR)
 
-1. **Ray Marching**: March reflected ray through screen space
-2. **Hierarchical Z**: Use Hi-Z pyramid for acceleration
-3. **Temporal Accumulation**: Smooth reflections over time
-4. **Composite**: Blend with scene color based on roughness
+SSR approximates reflections by ray marching in screen space:
+
+```glsl
+// SSR ray marching shader
+layout(location = 0) in vec2 uv;
+layout(location = 0) out vec4 fragColor;
+
+uniform sampler2D colorBuffer;
+uniform sampler2D normalBuffer;
+uniform sampler2D depthBuffer;
+uniform mat4 invViewProj;
+uniform mat4 prevViewProj;
+uniform vec2 resolution;
+uniform vec3 cameraPos;
+
+vec3 worldPosition(vec2 uv, float depth) {
+    vec4 ndc = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 world = invViewProj * ndc;
+    return world.xyz / world.w;
+}
+
+bool traceRay(vec3 startPos, vec3 direction, out vec2 hitUV, out float hitDepth) {
+    vec3 currentPos = startPos;
+    float stepSize = 0.01;  // Initial ray step
+
+    for (int i = 0; i < 32; ++i) {
+        currentPos += direction * stepSize;
+        vec4 screenPos = viewProj * vec4(currentPos, 1.0);
+        screenPos /= screenPos.w;
+
+        if (screenPos.x < 0.0 || screenPos.x > 1.0 ||
+            screenPos.y < 0.0 || screenPos.y > 1.0) {
+            return false;  // Out of screen bounds
+        }
+
+        vec2 sampleUV = screenPos.xy * 0.5 + 0.5;
+        float sceneDepth = texture(depthBuffer, sampleUV).r;
+
+        // Depth comparison for intersection
+        if (screenPos.z > sceneDepth) {
+            hitUV = sampleUV;
+            hitDepth = sceneDepth;
+            return true;
+        }
+
+        // Adaptive step size based on distance
+        stepSize *= 1.1;
+    }
+
+    return false;
+}
+
+void main() {
+    float depth = texture(depthBuffer, uv).r;
+    vec3 normal = texture(normalBuffer, uv).rgb;
+
+    // Reconstruct world position
+    vec3 worldPos = worldPosition(uv, depth);
+    vec3 viewDir = normalize(cameraPos - worldPos);
+
+    // Calculate reflection direction
+    vec3 reflectDir = reflect(-viewDir, normal);
+
+    // Trace reflection ray
+    vec2 hitUV;
+    float hitDepth;
+    vec3 reflectionColor = vec3(0.0);
+
+    if (traceRay(worldPos, reflectDir, hitUV, hitDepth)) {
+        reflectionColor = texture(colorBuffer, hitUV).rgb;
+    }
+
+    // Composite with scene color based on roughness
+    vec3 sceneColor = texture(colorBuffer, uv).rgb;
+    float roughness = 0.3;  // Sample from roughness buffer
+    fragColor = vec4(mix(sceneColor, reflectionColor, 1.0 - roughness), 1.0);
+}
+```
+
+**SSR Pipeline:**
+1. **G-Buffer Prep**: Render normals, depth, and roughness
+2. **Ray Setup**: Calculate reflection direction from view vector and normal
+3. **Hi-Z March**: Use hierarchical depth buffer for accelerated ray traversal
+4. **Intersection Test**: Check depth at each ray step for surface hit
+5. **Temporal Accumulation**: Smooth reflections over multiple frames
+6. **Composite**: Blend with scene color based on roughness and Fresnel
+
+### 13.3 Bloom
+
+Bloom creates glowing highlights by extracting bright pixels and blurring them:
+
+```glsl
+// Bloom downsample (prefilter) shader
+layout(location = 0) in vec2 uv;
+layout(location = 0) out vec4 fragColor;
+
+uniform sampler2D hdrBuffer;
+uniform float threshold = 1.0;
+uniform vec2 resolution;
+
+void main() {
+    vec2 texelSize = 1.0 / resolution;
+
+    // 13-tap tent filter for downsampling
+    vec3 result = vec3(0.0);
+    float totalWeight = 0.0;
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            vec3 sampleColor = texture(hdrBuffer, uv + vec2(x, y) * texelSize).rgb;
+            float luminance = dot(sampleColor, vec3(0.2126, 0.7152, 0.0722));
+
+            // Threshold with smooth knee
+            float brightness = max(luminance - threshold, 0.0);
+            float weight = 1.0 / (1.0 + brightness);
+
+            result += sampleColor * brightness * weight;
+            totalWeight += weight;
+        }
+    }
+
+    fragColor = vec4(result / totalWeight, 1.0);
+}
+
+// Bloom upsample (combine) shader
+void main() {
+    vec2 texelSize = 1.0 / resolution;
+
+    // Bilinear interpolate 4 samples for upsampling
+    vec3 result = vec3(0.0);
+    result += texture(bloomBuffer, uv + vec2(-0.5, -0.5) * texelSize).rgb;
+    result += texture(bloomBuffer, uv + vec2( 0.5, -0.5) * texelSize).rgb;
+    result += texture(bloomBuffer, uv + vec2(-0.5,  0.5) * texelSize).rgb;
+    result += texture(bloomBuffer, uv + vec2( 0.5,  0.5) * texelSize).rgb;
+    result *= 0.25;
+
+    // Additive blend with scene
+    vec3 sceneColor = texture(sceneBuffer, uv).rgb;
+    fragColor = vec4(sceneColor + result * bloomIntensity, 1.0);
+}
+```
+
+**Bloom Pipeline:**
+1. **Prefilter**: Extract bright pixels above threshold with 13-tap tent filter
+2. **Downsample**: Create mip chain (typically 5-6 levels)
+3. **Blur**: Apply separable Gaussian blur at each level
+4. **Upsample**: Combine each level with bilateral filtering
+5. **Composite**: Additive blend with original scene
+
+### 13.4 Screen Space Ambient Occlusion (SSAO)
+
+SSAO approximates ambient occlusion by sampling hemisphere in screen space:
+
+```glsl
+// SSAO shader
+layout(location = 0) in vec2 uv;
+layout(location = 0) out vec4 fragColor;
+
+uniform sampler2D normalBuffer;
+uniform sampler2D depthBuffer;
+uniform sampler2D noiseBuffer;  // Rotation noise texture
+
+uniform vec3 samples[64];  // Precomputed hemisphere samples
+uniform mat4 projection;
+uniform vec2 resolution;
+
+void main() {
+    vec3 normal = texture(normalBuffer, uv).rgb;
+    float depth = texture(depthBuffer, uv).r;
+
+    // Reconstruct view position
+    vec4 ndc = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 viewPos = inverse(projection) * ndc;
+    viewPos /= viewPos.w;
+
+    // Random rotation from noise texture
+    vec3 randomVec = texture(noiseBuffer, uv * resolution / 4.0).rgb;
+    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    mat3 TBN = mat3(tangent, bitangent, normal);
+
+    // Ambient occlusion calculation
+    float occlusion = 0.0;
+    float radius = 0.5;
+
+    for (int i = 0; i < 64; ++i) {
+        // Sample in hemisphere oriented around normal
+        vec3 samplePos = TBN * samples[i];
+        samplePos = viewPos.xyz + samplePos * radius;
+
+        // Project sample to screen space
+        vec4 offset = projection * vec4(samplePos, 1.0);
+        offset.xyz /= offset.w;
+        vec2 sampleUV = offset.xy * 0.5 + 0.5;
+
+        // Compare sample depth with scene depth
+        float sampleDepth = texture(depthBuffer, sampleUV).r;
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(viewPos.z - sampleDepth));
+
+        occlusion += (sampleDepth >= samplePos.z + 0.025 ? 1.0 : 0.0) * rangeCheck;
+    }
+
+    occlusion = 1.0 - (occlusion / 64.0);
+    fragColor = vec4(vec3(occlusion), 1.0);
+}
+```
+
+### 13.5 Tone Mapping (ACES)
+
+ACES filmic tone mapping curve for HDR to LDR conversion:
+
+```glsl
+// ACES tone mapping (Narkowicz approximation)
+vec3 aces(vec3 x) {
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// Combined tone mapping and color grading
+void main() {
+    vec3 hdrColor = texture(hdrBuffer, uv).rgb;
+
+    // Exposure adjustment
+    float exposure = 1.0;
+    hdrColor *= exposure;
+
+    // ACES tone mapping
+    vec3 ldrColor = aces(hdrColor);
+
+    // Gamma correction for sRGB display
+    ldrColor = pow(ldrColor, vec3(1.0 / 2.2));
+
+    fragColor = vec4(ldrColor, 1.0);
+}
+```
 
 ---
 
@@ -4747,3 +5465,155 @@ This document covers the essential C++ techniques, design patterns, algorithms, 
 14. **Advanced Mathematics** - Dual quaternions, spherical harmonics
 
 For implementation details, see the project source code under `src/`.
+
+---
+
+## 📖 Beginner's Glossary
+
+> **Don't know what a word means?** Look it up here! This glossary explains technical terms in simple language.
+
+### A - C
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **API** | Application Programming Interface - like a menu of commands you can give to a program |
+| **Array** | A list of items stored in order, like `[0, 2, 4, 6, 8]` |
+| **ASCII** | A code that turns letters into numbers (A=65, B=66, etc.) |
+| **Bindless** | A way for shaders to access textures/buffers directly without being "bound" first |
+| **Bit** | The smallest piece of data - either 0 or 1 (like a light switch: on/off) |
+| **Byte** | 8 bits grouped together - can hold a number from 0 to 255 |
+| **Cache** | Super-fast memory that the CPU uses to store frequently-used data |
+| **Class** | A blueprint for creating objects (like a cookie cutter for making cookies) |
+| **Compile** | Turning code you write into machine code the computer understands |
+| **Const** | Short for "constant" - a value that cannot be changed |
+| **CPU** | Central Processing Unit - the "brain" of your computer |
+| **Culling** | Deciding what NOT to draw (because it's off-screen or blocked) |
+
+### D - I
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Debug** | Finding and fixing mistakes in your code |
+| **Declaration** | Telling the computer about a variable or function (its name and type) |
+| **Dereference** | Following a pointer to get the actual value |
+| **Dot Product** | A math operation that measures how much two vectors point in the same direction |
+| **Double Buffer** | Using two buffers - one displays while the other prepares the next frame |
+| **Driver** | Software that lets your operating system talk to hardware (like the GPU) |
+| **Dynamic** | Things that change while the program runs (vs. "static" = fixed) |
+| **Enum** | A list of named values (like `enum Color { Red, Green, Blue }`) |
+| **FPS** | Frames Per Second - how many images are drawn each second (60 FPS = smooth) |
+| **Fragment** | Another word for "pixel" in graphics (a piece of a triangle) |
+| **Function** | A named block of code that does a specific task |
+| **GPU** | Graphics Processing Unit - the chip that draws graphics |
+| **Header File** | A file (.h/.hpp) that declares functions and classes (like a table of contents) |
+| **Heap** | Memory that can be allocated and freed while the program runs |
+| **Hexadecimal** | Base-16 numbers (0-9, A-F) used for colors (#FF0000 = red) |
+| **Include** | Bringing in code from another file |
+| **Index** | A number that identifies an item in a list (array indices start at 0!) |
+| **Inline** | A function whose code is copied where it's called (faster for small functions) |
+| **Instance** | One specific object created from a class |
+
+### L - P
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Library** | Pre-written code you can use in your program |
+| **Link** | Combining compiled code files into one executable program |
+| **Loop** | Repeating a block of code multiple times |
+| **Matrix** | A grid of numbers used for transformations (move, rotate, scale) |
+| **Memory Leak** | When memory is allocated but never freed - wastes RAM and can crash programs |
+| **Mesh** | A 3D shape made of triangles (vertices + indices) |
+| **Namespace** | A way to organize code and avoid name conflicts |
+| **Normalize** | Making a vector have length 1 (used for directions) |
+| **Null** | A special value meaning "nothing" or "no object" |
+| **Object** | An instance of a class (an actual "thing" created from a blueprint) |
+| **Overload** | Having multiple functions with the same name but different parameters |
+| **Override** | Replacing a parent class's function with a child class's version |
+| **Pointer** | A variable that holds the memory address of another variable |
+| **Polygon** | A 2D shape with straight sides (triangle = 3 sides, quad = 4 sides) |
+| **Primitive** | Basic drawing types: points, lines, triangles |
+| **Projection** | Converting 3D coordinates to 2D screen coordinates |
+
+### Q - Z
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Quaternion** | A way to represent rotations without "gimbal lock" problems |
+| **RAII** | Resource Acquisition Is Initialization - getting resources when creating objects |
+| **Rasterization** | Turning shapes (triangles) into actual pixels on screen |
+| **Reference** | An alias (another name) for an existing variable |
+| **Render** | Drawing a scene to the screen |
+| **Shader** | A small program that runs on the GPU to calculate pixel colors |
+| **SPIR-V** | Vulkan's shader language format (like machine code for GPUs) |
+| **Stack** | Memory for function calls - grows and shrinks as functions are called |
+| **Struct** | A group of variables grouped together under one name |
+| **Template** | C++ code that works with different types (like a pattern for making functions) |
+| **Texture** | An image wrapped around a 3D object |
+| **Triangle** | The basic building block of 3D graphics (3 vertices) |
+| **Type** | What kind of data something is (int, float, string, etc.) |
+| **Uniform** | A variable that stays the same for all vertices in a draw call |
+| **Variable** | A named storage location for data |
+| **Vector** | A list of numbers representing direction and magnitude (or position, or color) |
+| **Vertex** | A corner point of a 3D shape (has position, normal, color, etc.) |
+| **Virtual** | A function that can be overridden by child classes |
+
+### Common Confusing Terms Explained
+
+**❌ Confusion:** "What's the difference between a Class and an Object?"
+
+**✅ Explanation:**
+- **Class** = The blueprint (like a cookie cutter)
+- **Object** = What the blueprint creates (the actual cookies)
+
+```c++
+class Cookie {          // This is the CLASS (blueprint)
+    string flavor;
+};
+
+Cookie chocolateChip;   // This is an OBJECT (created from the class)
+chocolateChip.flavor = "chocolate chip";
+```
+
+---
+
+**❌ Confusion:** "What's the difference between a Pointer and a Reference?"
+
+**✅ Explanation:**
+- **Pointer** = An arrow that can be redirected to point at different things
+- **Reference** = A permanent nickname for something that cannot be changed
+
+```c++
+int value = 5;
+int* ptr = &value;       // Pointer - stores the ADDRESS of value
+int& ref = value;        // Reference - is another NAME for value
+
+ptr = nullptr;           // OK - pointer can change
+// ref = otherValue;     // ERROR - reference cannot be reassigned!
+```
+
+---
+
+**❌ Confusion:** "What's the difference between CPU and GPU?"
+
+**✅ Explanation:**
+
+| | CPU | GPU |
+|---|-----|-----|
+| **Best at** | Complex decisions, one-at-a-time tasks | Simple math, thousands-at-once tasks |
+| **Cores** | 4-32 (powerful) | 1000-10000 (simple but fast) |
+| **Used for** | Game logic, AI, physics simulation | Drawing pixels, shading, lighting |
+| **Analogy** | Genius professor | 1000 elementary students |
+
+---
+
+### Learning Path for Beginners
+
+If you're new to all this, here's a suggested learning order:
+
+1. **Start with Section 1 (Modern C++)** - Learn the language basics
+2. **Read Section 5.0 (Math Introduction)** - Understand vectors and matrices visually
+3. **Study Section 2 (Design Patterns)** - Learn how to organize code
+4. **Explore Section 8 (Performance)** - Learn how to write fast code
+5. **Dive into Graphics** - Sections 3, 4, and the Vulkan-specific sections
+
+> **Remember:** Nobody learns all of this at once! Even professionals look things up constantly. Take your time, experiment with code, and don't be afraid to make mistakes - that's how you learn!

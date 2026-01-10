@@ -158,19 +158,21 @@ cmake -B build -DUSD_VULKAN_ENGINE_BUILD_TESTS=OFF ..
 
 All dependencies are managed automatically and cached in `.cpm-cache/`:
 
-| Dependency | Version | Source |
-|------------|---------|--------|
-| CPM.cmake | v0.42.0 | [github.com/cpm-cmake/CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) |
-| Catch2 | v3.12.0 | [github.com/catchorg/Catch2](https://github.com/catchorg/Catch2) |
-| GLM | 1.0.2 | [github.com/g-truc/glm](https://github.com/g-truc/glm) |
-| Dear ImGui | v1.92.2 | [github.com/ocornut/imgui](https://github.com/ocornut/imgui) |
-| spdlog | v1.16.0 | [github.com/gabime/spdlog](https://github.com/gabime/spdlog) |
-| ImGuiFileDialog | v0.6.7 | [github.com/aiekick/ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog) |
-| GLFW | 3.4 | [github.com/glfw/glfw](https://github.com/glfw/glfw) |
-| Vulkan-Headers | v1.4.337 | [github.com/KhronosGroup/Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) |
-| Vulkan-Hpp | v1.4.337 | [github.com/KhronosGroup/Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) |
-| Vulkan-Loader | v1.4.337 | [github.com/KhronosGroup/Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) |
-| OpenUSD | v25.11 | [github.com/PixarAnimationStudios/OpenUSD](https://github.com/PixarAnimationStudios/OpenUSD) |
+| Dependency | Version | Size | Source |
+|------------|---------|------|--------|
+| CPM.cmake | v0.42.0 | ~50 KB | [github.com/cpm-cmake/CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) |
+| Catch2 | v3.12.0 | ~2 MB | [github.com/catchorg/Catch2](https://github.com/catchorg/Catch2) |
+| GLM | 1.0.2 | ~1 MB | [github.com/g-truc/glm](https://github.com/g-truc/glm) |
+| Dear ImGui | v1.92.2 | ~2 MB | [github.com/ocornut/imgui](https://github.com/ocornut/imgui) |
+| spdlog | v1.16.0 | ~1 MB | [github.com/gabime/spdlog](https://github.com/gabime/spdlog) |
+| ImGuiFileDialog | v0.6.7 | ~500 KB | [github.com/aiekick/ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog) |
+| GLFW | 3.4 | ~3 MB | [github.com/glfw/glfw](https://github.com/glfw/glfw) |
+| Vulkan-Headers | v1.4.337 | ~2 MB | [github.com/KhronosGroup/Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) |
+| Vulkan-Hpp | v1.4.337 | ~3 MB | [github.com/KhronosGroup/Vulkan-Hpp](https://github.com/KhronosGroup/Vulkan-Hpp) |
+| Vulkan-Loader | v1.4.337 | ~500 KB | [github.com/KhronosGroup/Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) |
+| OpenUSD | v25.11 | ~150 MB | [github.com/PixarAnimationStudios/OpenUSD](https://github.com/PixarAnimationStudios/OpenUSD) |
+
+**Total Download Size:** ~165 MB
 
 ## Sample Files
 
