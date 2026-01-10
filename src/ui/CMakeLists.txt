@@ -34,6 +34,9 @@ target_link_libraries(usd_vk_ui PUBLIC
     ImGuiFileDialog
 )
 
+# Prevent GLFW from including OpenGL headers (Vulkan-only build)
+target_compile_definitions(usd_vk_ui PUBLIC GLFW_INCLUDE_NONE)
+
 # Disable warnings for ImGui sources
 target_compile_options(usd_vk_ui PRIVATE
     -Wno-unused-parameter

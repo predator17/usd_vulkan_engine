@@ -151,10 +151,6 @@ CPMAddPackage(
 )
 if(glfw_ADDED)
     message(STATUS "GLFW v${glfw_VERSION} via CPM")
-    # IMPORTANT: Prevent GLFW from including OpenGL headers (Vulkan-only build)
-    # Without this, glfw3.h automatically includes <GL/gl.h> which fails compilation
-    # on systems without OpenGL development packages installed
-    target_compile_definitions(glfw PUBLIC GLFW_INCLUDE_NONE)
 endif()
 
 #==============================================================================
@@ -181,6 +177,8 @@ if(imgui_ADDED)
         )
         target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
         target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
+        # Prevent GLFW from including OpenGL headers (Vulkan-only build)
+        target_compile_definitions(imgui PUBLIC GLFW_INCLUDE_NONE)
         message(STATUS "Dear ImGui v${imgui_VERSION} via CPM")
     endif()
     # Export imgui source directory for ImGuiFileDialog

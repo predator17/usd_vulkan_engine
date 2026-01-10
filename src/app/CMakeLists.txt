@@ -10,6 +10,8 @@ set(APP_HEADERS
 
 add_library(usd_vk_app ${APP_SOURCES} ${APP_HEADERS})
 target_include_directories(usd_vk_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
+# Prevent GLFW from including OpenGL headers (Vulkan-only build)
+target_compile_definitions(usd_vk_app PUBLIC GLFW_INCLUDE_NONE)
 target_link_libraries(usd_vk_app
     PUBLIC
     usd_vk_core
@@ -39,6 +41,9 @@ target_link_libraries(usd_vulkan_engine
 
 # Depend on shader compilation
 add_dependencies(usd_vulkan_engine shaders)
+
+# Prevent GLFW from including OpenGL headers (Vulkan-only build)
+target_compile_definitions(usd_vulkan_engine PRIVATE GLFW_INCLUDE_NONE)
 
 # Link Python library (USD was built with Python support)
 if(EXISTS "/usr/lib64/libpython3.9.so")
